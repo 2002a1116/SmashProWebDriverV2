@@ -175,22 +175,22 @@ export default {
             dz_mode_list: [
                 {
                     label: 'off',
-                    value: '0',
+                    value: 0,
                     disabled: false
                 },
                 {
                     label: 'center',
-                    value: '1',
+                    value: 1,
                     disabled: false
                 },
                 {
                     label: 'axis',
-                    value: '2',
+                    value: 2,
                     disabled: false
                 },
                 {
                     label: 'axis(smoothed)',
-                    value: '3',
+                    value: 3,
                     disabled: false
                 }
             ],
