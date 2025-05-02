@@ -218,6 +218,10 @@ export default {
         }
     },
     mounted() {
+        for(let i=0;i<4;++i){
+            this.js_reversed[i]=(conf.joystick_ratio[i]<0);
+            this.js_ratio[i]=conf.joystick_ratio[i] / JS_FACTOR * (this.js_reversed[i] ? -1 : 1);
+        }
         draw(); // 初始调用
         this.interval = setInterval(draw, 1); // 每0.2秒轮询一次
     },
