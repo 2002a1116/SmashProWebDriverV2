@@ -219,6 +219,7 @@ export default {
     },
     mounted() {
         for(let i=0;i<4;++i){
+            //console.log(conf.joystick_ratio[i]);
             this.js_reversed[i]=(conf.joystick_ratio[i]<0);
             this.js_ratio[i]=conf.joystick_ratio[i] / JS_FACTOR * (this.js_reversed[i] ? -1 : 1);
         }

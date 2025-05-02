@@ -348,7 +348,7 @@ export function unpack_conf() {
     conf.out_interval = array[2];
     console.log("interval:" + conf.in_interval.toString() + "|" + conf.out_interval.toString());
     conf.hd_rumble_amp_ratio = (array.slice(3, 7));
-    conf.joystick_ratio = (array.slice(7, 11));
+    conf.joystick_ratio = [...(new Int8Array(array.slice(7, 11)))];
     conf.imu_sample_gap = fetch_u16(array.slice(11, 13));
     //conf.ldz = fetch_u16(array.slice(13, 15));
     //conf.rdz = fetch_u16(array.slice(15, 17));
