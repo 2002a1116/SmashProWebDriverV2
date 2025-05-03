@@ -61,13 +61,13 @@ export default {
     computed:{
         imu_enabled:{
             get():boolean{
-                return !(conf.config_bitmap1&0x40);
+                return !(conf.config_bitmap1&0x80);
             },
             set(v:boolean){
                 if(v)
-                    conf.config_bitmap1&=(~0x40);
+                    conf.config_bitmap1&=(~0x80);
                 else
-                    conf.config_bitmap1|=0x40;
+                    conf.config_bitmap1|=0x80;
             }
         },
         imu_sample_gap:{

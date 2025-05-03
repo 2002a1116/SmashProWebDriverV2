@@ -17,7 +17,8 @@
                     <n-flex>
                         <n-flex>
                             <span>X ratio:</span>
-                            <n-input-number v-model:value="js_ratio[0]" size="small" style="width: 150px;" />
+                            <n-input-number v-model:value="js_ratio[0]" 
+                            :step="0.0125" size="small" style="width: 150px;" @update:value="(value: number) => js_associate(0, value)"/>
                         </n-flex>
                         <n-flex>
                             <span>reverse:</span>
@@ -30,7 +31,8 @@
                     <n-flex>
                         <n-flex>
                             <span>Y ratio:</span>
-                            <n-input-number v-model:value="js_ratio[1]" size="small" style="width: 150px;" />
+                            <n-input-number v-model:value="js_ratio[1]" 
+                            :step="0.0125" size="small" style="width: 150px;" @update:value="(value: number) => js_associate(1, value)"/>
                         </n-flex>
                         <n-flex>
                             <span>reverse:</span>
@@ -56,7 +58,8 @@
                     <n-flex>
                         <n-flex>
                             <span>X ratio:</span>
-                            <n-input-number v-model:value="js_ratio[2]" size="small" style="width: 150px;" />
+                            <n-input-number v-model:value="js_ratio[2]" 
+                            :step="0.0125" size="small" style="width: 150px;" @update:value="(value: number) => js_associate(2, value)"/>
                         </n-flex>
                         <n-flex>
                             <span>reverse:</span>
@@ -69,7 +72,8 @@
                     <n-flex>
                         <n-flex>
                             <span>Y ratio:</span>
-                            <n-input-number v-model:value="js_ratio[3]" size="small" style="width: 150px;" />
+                            <n-input-number v-model:value="js_ratio[3]" 
+                            :step="0.0125" size="small" style="width: 150px;" @update:value="(value: number) => js_associate(3, value)" />
                         </n-flex>
                         <n-flex>
                             <span>reverse:</span>
@@ -200,6 +204,7 @@ export default {
     },
     methods: {
         js_associate(id: number, value: number): number {
+            console.log(value);
             conf.joystick_ratio[id] = value * JS_FACTOR * (this.js_reversed[id] ? -1 : 1);
             return value;
         },
