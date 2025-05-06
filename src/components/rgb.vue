@@ -50,7 +50,7 @@
 <style>
 .rgb_background{
     position: absolute;
-    background-image: url('D:\WebUSBDriver\SmashProWebDriverV2\src\desc.png');
+    background-image: url('../desc.png');
     background-size:contain;
     background-position: center;
     height:400px;
@@ -62,14 +62,6 @@ import { h, reactive, ref } from 'vue';
 import { conf, hex_to_rgb, rgb_to_hex, send_conf } from './webusb';
 import RgbButton from './RgbButton.vue'
 import { forEachTrailingCommentRange } from 'typescript';
-/*
-
-
-                <img id="myImage" src="D:\WebUSBDriver\SmashProWebDriverV2\src\desc.png" alt="Sample Image"
-                    style="width: 800px; height: 400px; overflow: scroll; object-fit: none;"
-                    @click="rgb_click_handler">
-                    
-*/
 let showModal = ref(false);
 let rgb_id: number = 0;
 let color_picker_value = ref("#ffffff");
