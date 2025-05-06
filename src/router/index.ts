@@ -1,9 +1,9 @@
 import Index from "../components/Index.vue";
-import Joystick from "../components/joystick.vue";
-import Rumble from "../components/rumble.vue";
-import Gyro from "../components/gyro.vue";
-import Rgb from "../components/rgb.vue";
-import Others from "../components/others.vue";
+import Joystick from "../components/Joystick.vue";
+import Rumble from "../components/Rumble.vue";
+import Gyro from "../components/Gyro.vue";
+import Rgb from "../components/Rgb.vue";
+import Others from "../components/Others.vue";
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router';
 const routes = [
     { path: '/', name: 'Home', component: Index },

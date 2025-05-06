@@ -103,7 +103,7 @@ export class js_data{
     max:coord=new coord;
     min:coord=new coord;
 }
-export let controller_color=new Array<rgb>(4);
+export let controller_color=reactive(new Array<rgb>(4));
 export let js:js_data[]=[new js_data,new js_data]
 export let connection_status:number;
 export let device: any; // 需要连接或已连接的设备

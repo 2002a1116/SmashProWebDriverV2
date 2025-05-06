@@ -47,16 +47,30 @@
                     </n-flex>
                 </n-flex>
             </n-card>
+            <n-card title="Shell Color">
+                <n-flex vertical>
+                main:<n-color-picker :show-preview="true" v-model:value="color_main"/>
+                shell:<n-color-picker :show-preview="true" v-model:value="color_shell"/>
+                left grip:<n-color-picker :show-preview="true" v-model:value="color_grip_left"/>
+                right grip:<n-color-picker :show-preview="true" v-model:value="color_grip_right"/>
+                <n-flex justify="space around">
+                    <n-button @click="read_erom(0x6050,0x0C)">Read</n-button>
+                    <n-button @click="controller_color_save()">Save</n-button>
+                </n-flex>
+                </n-flex>
+            </n-card>
         </n-flex>
     </n-flex>
 </template>
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
-import { conf, gen_bt_addr } from './webusb'
+import { conf, controller_color, controller_color_save, gen_bt_addr, hex_to_rgb, read_erom, rgb_to_hex } from './webusb'
 export default {
     setup() {
         return {
             conf,
+            read_erom,
+            controller_color_save,
             pro_fw_ver_list: [
                 {
                     label: '3.48',
@@ -147,7 +161,39 @@ export default {
                 if(v)conf.config_bitmap1|=0x04;
                 else conf.config_bitmap1&=(~0x04);
             }
-        }
+        },
+        color_main:{
+            get():string{
+                return rgb_to_hex(controller_color[0]);
+            },
+            set(v:string){
+                controller_color[0]=hex_to_rgb(v);
+            }
+        },
+        color_shell:{
+            get():string{
+                return rgb_to_hex(controller_color[1]);
+            },
+            set(v:string){
+                controller_color[1]=hex_to_rgb(v);
+            }
+        },
+        color_grip_left:{
+            get():string{
+                return rgb_to_hex(controller_color[2]);
+            },
+            set(v:string){
+                controller_color[2]=hex_to_rgb(v);
+            }
+        },
+        color_grip_right:{
+            get():string{
+                return rgb_to_hex(controller_color[3]);
+            },
+            set(v:string){
+                controller_color[3]=hex_to_rgb(v);
+            }
+        },
     },
     methods: {
         generate_bd_addr(){
