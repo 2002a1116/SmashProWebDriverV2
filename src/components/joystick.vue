@@ -113,7 +113,10 @@
                 </n-flex>
                 <span>anti snapback:</span>
                 <n-flex>
-                    <span>deadzone:</span>
+                    <span>left deadzone:</span>
+                    <n-input-number v-model:value="conf.joystick_snapback_deadzone[0]" size="tiny" />
+                    <n-slider v-model:value="conf.joystick_snapback_deadzone[0]" :step="1" :min="0" :max="2048" />
+                    <span>right deadzone:</span>
                     <n-input-number v-model:value="conf.joystick_snapback_deadzone[1]" size="tiny" />
                     <n-slider v-model:value="conf.joystick_snapback_deadzone[1]" :step="1" :min="0" :max="2048" />
                     <span>filter lasts(ms):</span>

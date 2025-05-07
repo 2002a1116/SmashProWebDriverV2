@@ -376,7 +376,7 @@ export function pack_conf() {
     array = [put_u8(conf.config_bitmap1), put_u8(conf.in_interval), put_u8(conf.out_interval),
     ...(new Uint8Array(conf.hd_rumble_amp_ratio)), ...(new Int8Array(conf.joystick_ratio)),
     ...put_u16(conf.imu_sample_gap),
-    ...put_u16(conf.dead_zone[0]), ...put_u16(conf.dead_zone[1]),
+    ...put_u16(conf.joystick_snapback_deadzone[0]), ...put_u16(conf.joystick_snapback_deadzone[1]),
     ...put_u16(conf.joystick_snapback_filter_max_delay),
     ...(new Uint8Array(conf.bd_addr)),
     put_u8(conf.imu_ratio_x), put_u8(conf.imu_ratio_y), put_u8(conf.imu_ratio_z),
