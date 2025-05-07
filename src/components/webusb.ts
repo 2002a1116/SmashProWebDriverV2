@@ -147,7 +147,7 @@ export function set_radio_value(radios: string | any[], v: number) {
         }
     }
 }
-export async function start_calibrate(id:number) {
+export async function js_start_calibrate(id:number) {
     if(id>1)return;
     js[id].center=js[id].pos;
     js[id].min=js[id].max=js[id].pos;

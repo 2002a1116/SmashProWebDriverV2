@@ -51,6 +51,11 @@
                         <n-input-number v-model:value="conf.dead_zone[1]" size="small" />
                         <n-slider v-model:value="conf.dead_zone[1]" :step="1" :min="0" :max="256" />
                     </n-flex>
+                    <span>Factory calibrate:</span>
+                    <n-flex>
+                        <n-button @click="js_start_calibrate(0)">start</n-button>
+                        <n-button @click="js_save_calibration(0)">end</n-button>
+                    </n-flex>
                 </n-flex>
             </n-card>
             <n-card title="right joystick">
@@ -92,6 +97,11 @@
                         <n-input-number v-model:value="conf.dead_zone[3]" size="small" />
                         <n-slider v-model:value="conf.dead_zone[3]" :step="1" :min="0" :max="256" />
                     </n-flex>
+                    <span>Factory calibrate:</span>
+                    <n-flex>
+                        <n-button @click="js_start_calibrate(1)">start</n-button>
+                        <n-button @click="js_save_calibration(1)">end</n-button>
+                    </n-flex>
                 </n-flex>
             </n-card>
         </n-flex>
@@ -123,7 +133,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
-import { conf, JS_FACTOR, device, js, fw_snd } from './webusb'
+import { conf, JS_FACTOR, device, js, fw_snd, js_start_calibrate, js_save_calibration } from './webusb'
 function draw() {
     let ljco:any = document.getElementById('ljoy_canvas');
     let rjco:any = document.getElementById('rjoy_canvas');
@@ -199,7 +209,9 @@ export default {
                 }
             ],
             interval,
-            conf
+            js_start_calibrate,
+            js_save_calibration,
+            conf,
         }
     },
     methods: {
