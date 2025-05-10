@@ -36,17 +36,17 @@
             <n-card title="bluetooth address" style="max-width: 500px">
                 <n-flex vertical>
                     <n-flex justify="center">
-                        <n-input-number v-model:value="conf.bd_addr[0]" :show-button=false style="width: 50px" min="0"
+                        <n-input v-model:value="bd_addr_0" :show-button=false style="width: 45px" min="0"
+                            max="255" />:                            
+                        <n-input v-model:value="bd_addr_1" :show-button=false style="width: 45px" min="0"
                             max="255" />:
-                        <n-input-number v-model:value="conf.bd_addr[1]" :show-button=false style="width: 50px" min="0"
+                        <n-input v-model:value="bd_addr_2" :show-button=false style="width: 45px" min="0"
                             max="255" />:
-                        <n-input-number v-model:value="conf.bd_addr[2]" :show-button=false style="width: 50px" min="0"
+                        <n-input v-model:value="bd_addr_3" :show-button=false style="width: 45px" min="0"
                             max="255" />:
-                        <n-input-number v-model:value="conf.bd_addr[3]" :show-button=false style="width: 50px" min="0"
+                        <n-input v-model:value="bd_addr_4" :show-button=false style="width: 45px" min="0"
                             max="255" />:
-                        <n-input-number v-model:value="conf.bd_addr[4]" :show-button=false style="width: 50px" min="0"
-                            max="255" />:
-                        <n-input-number v-model:value="conf.bd_addr[5]" :show-button=false style="width: 50px" min="0"
+                        <n-input v-model:value="bd_addr_5" :show-button=false style="width: 45px" min="0"
                             max="255" />
                     </n-flex>
                     <n-flex justify="space around">
@@ -68,9 +68,9 @@
             </n-card>
             <n-card>
                 <n-flex vertical>
-                    <n-input :value="conf_seri" type="textarea" :autosize="{
-                        minRows: 10,
-                        maxRows: 50,
+                    <n-input v-model:value="conf_seri" type="textarea" :autosize="{
+                        minRows: 1,
+                        maxRows: 100,
                     }"></n-input>
                     <n-flex justify="space-around">
                         <n-button @click="() => { conf = JSON.parse(conf_seri); }">import</n-button>
@@ -212,6 +212,54 @@ export default {
             },
             set(v: string) {
                 controller_color[3] = hex_to_rgb(v);
+            }
+        },
+        bd_addr_0:{
+            get(){
+                return conf.bd_addr[0].toString(16);
+            },
+            set(str:string){
+                conf.bd_addr[0]=parseInt(str,16);
+            }
+        },
+        bd_addr_1:{
+            get(){
+                return conf.bd_addr[1].toString(16);
+            },
+            set(str:string){
+                conf.bd_addr[1]=parseInt(str,16);
+            }
+        },
+        bd_addr_2:{
+            get(){
+                return conf.bd_addr[2].toString(16);
+            },
+            set(str:string){
+                conf.bd_addr[2]=parseInt(str,16);
+            }
+        },
+        bd_addr_3:{
+            get(){
+                return conf.bd_addr[3].toString(16);
+            },
+            set(str:string){
+                conf.bd_addr[3]=parseInt(str,16);
+            }
+        },
+        bd_addr_4:{
+            get(){
+                return conf.bd_addr[4].toString(16);
+            },
+            set(str:string){
+                conf.bd_addr[4]=parseInt(str,16);
+            }
+        },
+        bd_addr_5:{
+            get(){
+                return conf.bd_addr[5].toString(16);
+            },
+            set(str:string){
+                conf.bd_addr[5]=parseInt(str,16);
             }
         },
     },
