@@ -56,8 +56,8 @@
             </n-card>
             <n-card title="Shell Color">
                 <n-flex vertical>
-                    main:<n-color-picker :show-preview="true" v-model:value="color_main" />
-                    shell:<n-color-picker :show-preview="true" v-model:value="color_shell" />
+                    shell:<n-color-picker :show-preview="true" v-model:value="color_main" />
+                    buttons:<n-color-picker :show-preview="true" v-model:value="color_shell" />
                     left grip:<n-color-picker :show-preview="true" v-model:value="color_grip_left" />
                     right grip:<n-color-picker :show-preview="true" v-model:value="color_grip_right" />
                     <n-flex justify="space around">
