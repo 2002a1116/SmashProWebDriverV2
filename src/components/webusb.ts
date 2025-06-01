@@ -58,6 +58,8 @@ export class conf_pack{
         };
     };*/
     config_bitmap1=(0);
+    config_bitmap2=(0);
+    config_bitmap_reserved=([0,0]);
     in_interval=(8);
     out_interval=(8);
     hd_rumble_amp_ratio=([0,0,0,0]);//len:4
@@ -73,9 +75,8 @@ export class conf_pack{
     ns_pkt_timer_mode=(0);//0:stock(timestamp_div_5) 1:timestamp 2:pkt cnt
     dead_zone=reactive([0,0,0,0]);//len:4
     dead_zone_mode=(0);
-    rgb_cnt=(27);
+    rgb_cnt=(31);
     rgb_data:rgb[]=([]);//len>=29
-    config_bitmap2=(0);
 };
 export let conf=reactive(new conf_pack());
 export class coord{
@@ -344,28 +345,30 @@ rgb_hex.onchange = () => {
 }*/
 export function unpack_conf() {
     conf.config_bitmap1 = array[0];
-    conf.in_interval = array[1];
-    conf.out_interval = array[2];
+    conf.config_bitmap2 = array[1];
+    conf.config_bitmap_reserved = array.slice(2,4);
+    conf.in_interval = array[4];
+    conf.out_interval = array[5];
     console.log("interval:" + conf.in_interval.toString() + "|" + conf.out_interval.toString());
-    conf.hd_rumble_amp_ratio = (array.slice(3, 7));
-    conf.joystick_ratio = [...(new Int8Array(array.slice(7, 11)))];
-    conf.imu_sample_gap = fetch_u16(array.slice(11, 13));
+    conf.hd_rumble_amp_ratio = (array.slice(6, 10));
+    conf.joystick_ratio = [...(new Int8Array(array.slice(10, 14)))];
+    conf.imu_sample_gap = fetch_u16(array.slice(14, 16));
     //conf.ldz = fetch_u16(array.slice(13, 15));
     //conf.rdz = fetch_u16(array.slice(15, 17));
-    conf.joystick_snapback_deadzone[0] = fetch_u16(array.slice(13,15));
-    conf.joystick_snapback_deadzone[1] = fetch_u16(array.slice(15,17));
-    conf.joystick_snapback_filter_max_delay = fetch_u16(array.slice(17, 19));
-    conf.bd_addr = (array.slice(19, 25));
-    conf.imu_ratio_x = array[25];
-    conf.imu_ratio_y = array[26];
-    conf.imu_ratio_z = array[27];
-    conf.pro_fw_version = array[28];
-    conf.ns_pkt_timer_mode = array[29];
-    conf.dead_zone = (array.slice(30, 34));
-    conf.dead_zone_mode = array[34];
-    conf.rgb_cnt = array[35];
+    conf.joystick_snapback_deadzone[0] = fetch_u16(array.slice(16,18));
+    conf.joystick_snapback_deadzone[1] = fetch_u16(array.slice(18,20));
+    conf.joystick_snapback_filter_max_delay = fetch_u16(array.slice(20, 22));
+    conf.bd_addr = (array.slice(22, 28));
+    conf.imu_ratio_x = array[28];
+    conf.imu_ratio_y = array[29];
+    conf.imu_ratio_z = array[30];
+    conf.pro_fw_version = array[31];
+    conf.ns_pkt_timer_mode = array[32];
+    conf.dead_zone = (array.slice(33, 37));
+    conf.dead_zone_mode = array[37];
+    conf.rgb_cnt = array[38];
     for(let i=0;i<conf.rgb_cnt;i++){
-        conf.rgb_data[i]=u8a_to_rgb(new Uint8Array(array.slice(36+i*3,39+i*3)));
+        conf.rgb_data[i]=u8a_to_rgb(new Uint8Array(array.slice(39+i*3,42+i*3)));
     }
 }
 export function put_u8(x:number)
@@ -373,7 +376,8 @@ export function put_u8(x:number)
     return x&0xff;
 }
 export function pack_conf() {
-    array = [put_u8(conf.config_bitmap1), put_u8(conf.in_interval), put_u8(conf.out_interval),
+    array = [put_u8(conf.config_bitmap1), put_u8(conf.config_bitmap2), ...(new Uint8Array(conf.config_bitmap_reserved)),
+    put_u8(conf.in_interval), put_u8(conf.out_interval),
     ...(new Uint8Array(conf.hd_rumble_amp_ratio)), ...(new Int8Array(conf.joystick_ratio)),
     ...put_u16(conf.imu_sample_gap),
     ...put_u16(conf.joystick_snapback_deadzone[0]), ...put_u16(conf.joystick_snapback_deadzone[1]),
@@ -534,8 +538,8 @@ export async function open_device() {
             switch (id) {
                 case 0xFF://fw version
                     fw_version = buffer[0] * 255 + buffer[1];
-                    if (fw_version < 3) {
-                        alert("fw too old.");
+                    if (fw_version < (255 * 0 + 4)) {
+                        alert("error: firmware too old.");
                         device = 0;
                         connection_status = 0;
                         //connection_status_text.innerHTML = "disconnected.";
