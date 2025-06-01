@@ -73,7 +73,7 @@
                         maxRows: 100,
                     }"></n-input>
                     <n-flex justify="space-around">
-                        <n-button @click="() => { conf = JSON.parse(conf_seri); }">import</n-button>
+                        <n-button @click="() => { conf_unserilize(JSON.parse(conf_seri));console.log(conf); }">import</n-button>
                         <n-button @click="() => { conf_seri = JSON.stringify(conf); }">export</n-button>
                     </n-flex>
                 </n-flex>
@@ -82,11 +82,13 @@
     </n-flex>
 </template>
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
-import { conf, controller_color, controller_color_save, gen_bt_addr, hex_to_rgb, read_erom, rgb_to_hex } from './webusb'
+import { defineComponent, reactive, ref } from 'vue'
+import { conf, conf_pack, conf_unserilize, controller_color, controller_color_save, gen_bt_addr, hex_to_rgb, read_erom, rgb_to_hex } from './webusb'
 export default {
     setup() {
         return {
+            reactive,
+            conf_unserilize,
             conf_seri: ref(""),
             conf,
             read_erom,

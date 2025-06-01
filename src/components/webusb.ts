@@ -79,6 +79,29 @@ export class conf_pack{
     rgb_data:rgb[]=([]);//len>=29
 };
 export let conf=reactive(new conf_pack());
+export function conf_unserilize(p:any){
+    conf.bd_addr=p.bd_addr;
+    conf.config_bitmap1=p.config_bitmap1; 
+    conf.config_bitmap2=p.config_bitmap2;
+    conf.config_bitmap_reserved=p.config_bitmap_reserved;
+    conf.in_interval=p.in_interval;
+    conf.out_interval=p.out_interval;
+    conf.hd_rumble_amp_ratio=p.hd_rumble_amp_ratio;
+    conf.joystick_ratio=p.joystick_ratio;
+    conf.imu_sample_gap=p.imu_sample_gap
+    conf.joystick_snapback_deadzone=p.joystick_snapback_deadzone
+    conf.joystick_snapback_filter_max_delay=p.joystick_snapback_filter_max_delay
+    conf.bd_addr=p.bd_addr
+    conf.imu_ratio_x=p.imu_ratio_x
+    conf.imu_ratio_y=p.imu_ratio_y
+    conf.imu_ratio_z=p.imu_ratio_z
+    conf.pro_fw_version=p.pro_fw_version
+    conf.ns_pkt_timer_mode=p.ns_pkt_timer_mode
+    conf.dead_zone=reactive(p.dead_zone)
+    conf.dead_zone_mode=p.dead_zone_mode
+    conf.rgb_cnt=p.rgb_cnt
+    conf.rgb_data=p.rgb_data;
+}
 export class coord{
     x:number=0;
     y:number=0;
@@ -616,7 +639,7 @@ export async function open_device() {
                         //reset success.
                     }
                     else {
-                        alert("reset fail");
+                        alert("reset fail error:"+buffer[0].toString());
                     }
                     break;
                 case 0xFD:
