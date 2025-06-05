@@ -33,8 +33,11 @@
                     </n-flex>
                 </n-flex>
             </n-card>
-            <n-card title="bluetooth address" style="max-width: 500px">
+            <n-card title="hardware setting" style="max-width: 500px">
                 <n-flex vertical>
+                    <n-flex>
+                        <span>bluetooth address:</span>
+                    </n-flex>
                     <n-flex justify="center">
                         <n-input v-model:value="bd_addr_0" :show-button=false style="width: 45px" min="0"
                             max="255" />:                            
@@ -50,7 +53,11 @@
                             max="255" />
                     </n-flex>
                     <n-flex justify="space around">
-                        <n-button @click="generate_bd_addr">generate</n-button>
+                        <n-button @click="generate_bd_addr">generate address</n-button>
+                    </n-flex>
+                    <n-flex justify="space-between">
+                        <span>pcb type:</span>
+                        <n-select v-model:value="pcb_type" :options="pcb_type_list" style="width: 250px" />
                     </n-flex>
                 </n-flex>
             </n-card>
@@ -93,6 +100,18 @@ export default {
             conf,
             read_erom,
             controller_color_save,
+            pcb_type_list: [
+                {
+                    label: 'indicate led only',
+                    value: 0,
+                    disabled:false
+                },
+                {
+                    label: 'with joystick rgb',
+                    value: 1,
+                    disabled:false
+                }
+            ],
             pro_fw_ver_list: [
                 {
                     label: '3.48',
@@ -157,6 +176,14 @@ export default {
         }
     },
     computed: {
+        pcb_type:{
+            get():number{
+                return conf.config_bitmap2&0x3;
+            },
+            set(v:number){
+                conf.config_bitmap2=(conf.config_bitmap2&0xfc)|(v&0x3);
+            }
+        },
         a_b_swap: {
             get(): boolean {
                 return (conf.config_bitmap1 & 0x10) != 0;
