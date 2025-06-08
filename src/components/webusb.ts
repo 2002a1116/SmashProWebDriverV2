@@ -234,6 +234,9 @@ export async function js_save_calibration(id:number){
     buf[6] = xnr & 0xff;
     buf[7] = ((xnr >> 8) & 0xf) + ((ynr & 0xf) << 4);
     buf[8] = (ynr >> 4) & 0xff;
+    if(id==1){
+        buf=new Uint8Array([...buf.slice(3,6),...buf.slice(6,9),...buf.slice(0,3)]);//we reset data order.
+    }
     write_erom(0x603d + id * 0x09, 9, buf);
     js_cali_fsm[id] = 0;
 }

@@ -73,7 +73,7 @@
                     </n-flex>
                 </n-flex>
             </n-card>
-            <n-card>
+            <n-card title="config import&export">
                 <n-flex vertical>
                     <n-input v-model:value="conf_seri" type="textarea" :autosize="{
                         minRows: 1,
