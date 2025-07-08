@@ -59,6 +59,13 @@
                         <span>pcb type:</span>
                         <n-select v-model:value="pcb_type" :options="pcb_type_list" style="width: 250px" />
                     </n-flex>
+                    <n-flex justify="space-between">
+                        <span>key pcb type:</span>
+                        <n-select v-model:value="input_type" :options="input_type_list" style="width: 250px" />
+                    </n-flex>
+                    <n-flex justify="space-between">
+                        <span># pcb type change will not be implemented before restart device</span>
+                    </n-flex>
                 </n-flex>
             </n-card>
             <n-card title="Shell Color">
@@ -108,6 +115,18 @@ export default {
                 },
                 {
                     label: 'with joystick rgb',
+                    value: 1,
+                    disabled:false
+                }
+            ],
+            input_type_list: [
+                {
+                    label: 'SmashProPcb',
+                    value: 0,
+                    disabled:false
+                },
+                {
+                    label: 'NsProStockPcb',
                     value: 1,
                     disabled:false
                 }
@@ -182,6 +201,14 @@ export default {
             },
             set(v:number){
                 conf.config_bitmap2=(conf.config_bitmap2&0xfc)|(v&0x3);
+            }
+        },
+        input_type:{
+            get():number{
+                return (conf.config_bitmap2&0x4)>>2;
+            },
+            set(v:number){
+                conf.config_bitmap2=(conf.config_bitmap2&0xfb)|(v<<2);
             }
         },
         a_b_swap: {
