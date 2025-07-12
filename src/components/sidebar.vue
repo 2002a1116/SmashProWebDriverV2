@@ -40,7 +40,7 @@ import {
 import { NIcon } from 'naive-ui'
 import { defineComponent, h, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { fw_snd, read_conf, send_conf } from './webusb'
+import { fw_snd, open_device, read_conf, send_conf } from './webusb'
 
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) })
@@ -52,7 +52,7 @@ const navs: MenuOption[] = [
       h(
         RouterLink,
         {to: {name: 'Home'}},
-        {default: () => '首页'}
+        {default: () => '首页(HomePage)'}
       ),
     key: 'Home',
     icon: renderIcon(HomeIcon)
@@ -62,7 +62,7 @@ const navs: MenuOption[] = [
       h(
         RouterLink,
         {to: {name: 'Others'}},
-        {default: () => '其它'}
+        {default: () => '其它(Others)'}
       ),
     key: 'Others',
     icon: renderIcon(HomeIcon)
@@ -82,7 +82,7 @@ const navs: MenuOption[] = [
       h(
         RouterLink,
         {to: {name: 'Joystick'}},
-        {default: () => '摇杆'}
+        {default: () => '摇杆(Joystick)'}
       ),
     key: 'Joystick',
     icon: renderIcon(HomeIcon)
@@ -92,7 +92,7 @@ const navs: MenuOption[] = [
       h(
         RouterLink,
         {to: {name: 'Rumble'}},
-        {default: () => '震动'}
+        {default: () => '震动(Rumble)'}
       ),
     key: 'Rumble',
     icon: renderIcon(HomeIcon)
@@ -102,30 +102,45 @@ const navs: MenuOption[] = [
       h(
         RouterLink,
         {to: {name: 'Gyro'}},
-        {default: () => '体感'}
+        {default: () => '体感(GYRO)'}
       ),
     key: 'Gyro',
+    icon: renderIcon(HomeIcon)
+  },
+  {
+    label: () =>
+      h(
+        RouterLink,
+        {to: {name: 'Info'}},
+        {default: () => '信息(Info)'}
+      ),
+    key: 'Info',
     icon: renderIcon(HomeIcon)
   },
 ]
 const buttons:MenuOption[]=[
   {
-    label: 'read',
+    label: 'Open',
+    key: 'open',
+    icon:renderIcon(ReadIcon),
+  },
+  {
+    label: 'Read',
     key: 'read',
     icon:renderIcon(ReadIcon),
   },
   {
-    label: 'set',
+    label: 'Set',
     key: 'set',
     icon:renderIcon(DownloadIcon),
   },
   {
-    label: 'save',
+    label: 'Save',
     key: 'save',
     icon:renderIcon(SaveIcon),
   },
   {
-    label:'restart',
+    label:'Restart',
     key:'restart',
     icon:renderIcon(ResetartIcon),
   }
@@ -137,12 +152,15 @@ export default defineComponent({
       navs,
       buttons,
       collapsed:ref(false),
+      open_device,
     }
   },
   methods:{
     buttons_handler(key: string, item: MenuOption) {
       //item.callback();
-      if(key=='read'){
+      if(key=='open'){
+        open_device();
+      }else if(key=='read'){
         read_conf();
       }else if(key=='set'){
         send_conf(0);

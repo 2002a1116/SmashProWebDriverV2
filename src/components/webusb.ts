@@ -15,8 +15,11 @@ export  function u8a_to_rgb(buf:Uint8Array){
     }
     return res;
 }
-export function rgb_to_hex(r:rgb){
-    return '#'+r.r.toString(16).padStart(2, '0') + r.g.toString(16).padStart(2, '0') + r.b.toString(16).padStart(2, '0');
+export function rgb_to_hex(r:rgb){  
+    if(r === undefined)
+        return '#ffffff';
+    else
+        return '#'+r.r.toString(16).padStart(2, '0') + r.g.toString(16).padStart(2, '0') + r.b.toString(16).padStart(2, '0');
 }
 export function rgb_to_u8a(r:rgb){
     let res=new Uint8Array(3);
@@ -59,7 +62,7 @@ export class conf_pack{
     };*/
     config_bitmap1=(0);
     config_bitmap2=(0);
-    config_bitmap_reserved=([0,0]);
+    config_bitmap_reserved34=([0,0]);
     in_interval=(8);
     out_interval=(8);
     hd_rumble_amp_ratio=([0,0,0,0]);//len:4
@@ -73,17 +76,23 @@ export class conf_pack{
     imu_ratio_z=(127);//div 127
     pro_fw_version=(2);
     ns_pkt_timer_mode=(0);//0:stock(timestamp_div_5) 1:timestamp 2:pkt cnt
-    dead_zone=reactive([0,0,0,0]);//len:4
-    dead_zone_mode=(0);
+    //dead_zone=reactive([0,0,0,0]);//len:4
+    dead_zone=([0,0,0,0]);//len:4
+    config_bitmap5=(0);
     rgb_cnt=(31);
     rgb_data:rgb[]=([]);//len>=29
 };
-export let conf=reactive(new conf_pack());
+//export let conf=reactive(new conf_pack());
+export let conf;
+export function conf_init(){
+    conf=reactive(new conf_pack());
+    unpack_conf(new Array(256).fill(0));
+}
 export function conf_unserilize(p:any){
     conf.bd_addr=p.bd_addr;
     conf.config_bitmap1=p.config_bitmap1; 
     conf.config_bitmap2=p.config_bitmap2;
-    conf.config_bitmap_reserved=p.config_bitmap_reserved;
+    conf.config_bitmap_reserved34=p.hasOwnProperty('config_bitmap_reserved')?p.config_bitmap_reserved:p.config_bitmap_reserved34;
     conf.in_interval=p.in_interval;
     conf.out_interval=p.out_interval;
     conf.hd_rumble_amp_ratio=p.hd_rumble_amp_ratio;
@@ -97,10 +106,14 @@ export function conf_unserilize(p:any){
     conf.imu_ratio_z=p.imu_ratio_z
     conf.pro_fw_version=p.pro_fw_version
     conf.ns_pkt_timer_mode=p.ns_pkt_timer_mode
-    conf.dead_zone=reactive(p.dead_zone)
-    conf.dead_zone_mode=p.dead_zone_mode
+    //conf.dead_zone=reactive(p.dead_zone)
+    conf.dead_zone=(p.dead_zone)
+    conf.config_bitmap5=p.hasOwnProperty('config_bitmap5')?p.config_bitmap5:(0);
     conf.rgb_cnt=p.rgb_cnt
     conf.rgb_data=p.rgb_data;
+    if('dead_zone_mode' in p){
+        conf.config_bitmap2|=(p.dead_zone_mode<<6)&0xc0;
+    }
 }
 export class coord{
     x:number=0;
@@ -369,10 +382,10 @@ rgb_color.onchange = () => {
 rgb_hex.onchange = () => {
     rgb_color.value = '#' + rgb_hex.value;
 }*/
-export function unpack_conf() {
+export function unpack_conf(array: number[]) {
     conf.config_bitmap1 = array[0];
     conf.config_bitmap2 = array[1];
-    conf.config_bitmap_reserved = array.slice(2,4);
+    conf.config_bitmap_reserved34 = array.slice(2,4);
     conf.in_interval = array[4];
     conf.out_interval = array[5];
     console.log("interval:" + conf.in_interval.toString() + "|" + conf.out_interval.toString());
@@ -391,18 +404,19 @@ export function unpack_conf() {
     conf.pro_fw_version = array[31];
     conf.ns_pkt_timer_mode = array[32];
     conf.dead_zone = (array.slice(33, 37));
-    conf.dead_zone_mode = array[37];
+    conf.config_bitmap5 = array[37];
     conf.rgb_cnt = array[38];
     for(let i=0;i<conf.rgb_cnt;i++){
         conf.rgb_data[i]=u8a_to_rgb(new Uint8Array(array.slice(39+i*3,42+i*3)));
     }
+    console.log("unpacked");
 }
 export function put_u8(x:number)
 {
     return x&0xff;
 }
 export function pack_conf() {
-    array = [put_u8(conf.config_bitmap1), put_u8(conf.config_bitmap2), ...(new Uint8Array(conf.config_bitmap_reserved)),
+    array = [put_u8(conf.config_bitmap1), put_u8(conf.config_bitmap2), ...(new Uint8Array(conf.config_bitmap_reserved34)),
     put_u8(conf.in_interval), put_u8(conf.out_interval),
     ...(new Uint8Array(conf.hd_rumble_amp_ratio)), ...(new Int8Array(conf.joystick_ratio)),
     ...put_u16(conf.imu_sample_gap),
@@ -411,7 +425,7 @@ export function pack_conf() {
     ...(new Uint8Array(conf.bd_addr)),
     put_u8(conf.imu_ratio_x), put_u8(conf.imu_ratio_y), put_u8(conf.imu_ratio_z),
     put_u8(conf.pro_fw_version), put_u8(conf.ns_pkt_timer_mode),
-    ...(new Uint8Array(conf.dead_zone)), put_u8(conf.dead_zone_mode),
+    ...(new Uint8Array(conf.dead_zone)), put_u8(conf.config_bitmap5),
     put_u8(conf.rgb_cnt)
     ];
     conf.rgb_data.forEach(r => {
@@ -586,7 +600,7 @@ export async function open_device() {
                             break;
                         }
                         red_cnt = 0;
-                        unpack_conf();
+                        unpack_conf(array);
                         flush_setting();
                     }
                     else {

@@ -9,10 +9,15 @@
   </div>
 </template>
 <script lang="ts">
+import { reactive } from 'vue';
 import Sidebar from './components/Sidebar.vue'
+import { conf_init } from './components/webusb';
 export default {
   components: {
     Sidebar
+  },
+  mounted(){
+    conf_init();
   }
 }
 </script>

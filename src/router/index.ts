@@ -4,6 +4,7 @@ import Rumble from "../components/Rumble.vue";
 import Gyro from "../components/Gyro.vue";
 import Rgb from "../components/Rgb.vue";
 import Others from "../components/Others.vue";
+import Info from "../components/Info.vue";
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router';
 const routes = [
     { path: '/', name: 'Home', component: Index },
@@ -12,6 +13,7 @@ const routes = [
     { path: '/Gyro', name: 'Gyro', component: Gyro},
     { path: '/Rgb', name: 'Rgb', component: Rgb},
     { path: '/Others', name: 'Others', component: Others},
+    { path: '/Info', name:'Info',component: Info},
   ];
 const router = createRouter({
     history: createWebHashHistory(),

@@ -63,9 +63,6 @@
                         <span>key pcb type:</span>
                         <n-select v-model:value="input_type" :options="input_type_list" style="width: 250px" />
                     </n-flex>
-                    <n-flex justify="space-between">
-                        <span># pcb type change will not be implemented before restart device</span>
-                    </n-flex>
                 </n-flex>
             </n-card>
             <n-card title="Shell Color">

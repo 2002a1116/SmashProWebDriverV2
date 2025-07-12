@@ -18,28 +18,28 @@
                         <n-flex>
                             <span>X ratio:</span>
                             <n-input-number v-model:value="js_ratio[0]" 
-                            :step="0.0125" size="small" style="width: 150px;" @update:value="(value: number) => js_associate(0, value)"/>
+                            :step="0.03125" size="small" style="width: 150px;" @update:value="(value: number) => js_associate(0, value)"/>
                         </n-flex>
                         <n-flex>
                             <span>reverse:</span>
                             <n-switch v-model:value="js_reversed[0]"
                                 @update:value="(v: boolean): boolean => { js_reversed[0] = (v); js_associate(0, js_ratio[0]); return v; }" />
                         </n-flex>
-                        <n-slider v-model:value="js_ratio[0]" :step="0.0125" :min="0" :max="4"
+                        <n-slider v-model:value="js_ratio[0]" :step="0.03125" :min="0" :max="4"
                             @update:value="(value: number) => js_associate(0, value)" />
                     </n-flex>
                     <n-flex>
                         <n-flex>
                             <span>Y ratio:</span>
                             <n-input-number v-model:value="js_ratio[1]" 
-                            :step="0.0125" size="small" style="width: 150px;" @update:value="(value: number) => js_associate(1, value)"/>
+                            :step="0.03125" size="small" style="width: 150px;" @update:value="(value: number) => js_associate(1, value)"/>
                         </n-flex>
                         <n-flex>
                             <span>reverse:</span>
                             <n-switch v-model:value="js_reversed[1]"
                                 @update:value="(v: boolean): boolean => { js_reversed[1] = (v); js_associate(1, js_ratio[1]); return v; }" />
                         </n-flex>
-                        <n-slider v-model:value="js_ratio[1]" :step="0.0125" :min="0" :max="4"
+                        <n-slider v-model:value="js_ratio[1]" :step="0.03125" :min="0" :max="4"
                             @update:value="(value: number) => js_associate(1, value)" />
                     </n-flex>
                     <span>DEAD ZONE:</span>
@@ -64,28 +64,28 @@
                         <n-flex>
                             <span>X ratio:</span>
                             <n-input-number v-model:value="js_ratio[2]" 
-                            :step="0.0125" size="small" style="width: 150px;" @update:value="(value: number) => js_associate(2, value)"/>
+                            :step="0.03125" size="small" style="width: 150px;" @update:value="(value: number) => js_associate(2, value)"/>
                         </n-flex>
                         <n-flex>
                             <span>reverse:</span>
                             <n-switch v-model:value="js_reversed[2]"
                                 @update:value="(v: boolean): boolean => { js_reversed[2] = (v); js_associate(2, js_ratio[2]); return v; }" />
                         </n-flex>
-                        <n-slider v-model:value="js_ratio[2]" :step="0.0125" :min="0" :max="4"
+                        <n-slider v-model:value="js_ratio[2]" :step="0.03125" :min="0" :max="4"
                             @update:value="(value: number) => js_associate(2, value)" />
                     </n-flex>
                     <n-flex>
                         <n-flex>
                             <span>Y ratio:</span>
                             <n-input-number v-model:value="js_ratio[3]" 
-                            :step="0.0125" size="small" style="width: 150px;" @update:value="(value: number) => js_associate(3, value)" />
+                            :step="0.03125" size="small" style="width: 150px;" @update:value="(value: number) => js_associate(3, value)" />
                         </n-flex>
                         <n-flex>
                             <span>reverse:</span>
                             <n-switch v-model:value="js_reversed[3]"
                                 @update:value="(v: boolean): boolean => { js_reversed[3] = (v); js_associate(3, js_ratio[3]); return v; }" />
                         </n-flex>
-                        <n-slider v-model:value="js_ratio[3]" :step="0.0125" :min="0" :max="4"
+                        <n-slider v-model:value="js_ratio[3]" :step="0.03125" :min="0" :max="4"
                             @update:value="(value: number) => js_associate(3, value)" />
                     </n-flex>
                     <span>DEAD ZONE:</span>
@@ -109,7 +109,7 @@
             <n-card title="Settings">
                 <n-flex justify="space-between">
                     <span>dead zone mode:</span>
-                    <n-select v-model:value="conf.dead_zone_mode" :options="dz_mode_list" style="width: 150px" />
+                    <n-select v-model:value="dead_zone_mode" :options="dz_mode_list" style="width: 150px" />
                 </n-flex>
                 <span>anti snapback:</span>
                 <n-flex>
@@ -220,7 +220,7 @@ export default {
     methods: {
         js_associate(id: number, value: number): number {
             console.log(value);
-            conf.joystick_ratio[id] = value * JS_FACTOR * (this.js_reversed[id] ? -1 : 1);
+            conf.joystick_ratio[id] = Math.floor(value * JS_FACTOR * (this.js_reversed[id] ? -1 : 1));
             return value;
         },
         calibrate_js_center(){
@@ -234,6 +234,14 @@ export default {
             },
             set(v:any){
                 conf.joystick_snapback_filter_max_delay=v*1000;
+            }
+        },
+        dead_zone_mode:{
+            get():number{
+                return (conf.config_bitmap2>>6)&0x3;
+            },
+            set(v:number){
+                conf.config_bitmap2=(conf.config_bitmap2&0x3f)|((v<<6)&0xc0)
             }
         }
     },

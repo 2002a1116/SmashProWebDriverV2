@@ -27,7 +27,7 @@ export default defineComponent({
         },
         rgb_button_color_cal_rev: {
             get() {
-                return (id: number): string => { return rgb_to_hex({ r: 255 - conf.rgb_data[id].r, g: 255 - conf.rgb_data[id].g, b: 255 - conf.rgb_data[id].b }); }
+                return (id: number): string => { return rgb_to_hex({ r: 255 - (conf.rgb_data[id]??255).r, g: 255 - (conf.rgb_data[id]??255).g, b: 255 - (conf.rgb_data[id]??255).b }); }
             },
             set(v:any){}
         }
