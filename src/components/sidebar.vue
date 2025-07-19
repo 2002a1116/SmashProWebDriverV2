@@ -35,7 +35,9 @@ import {
   ArrowUpOutline as ReadIcon,
   ArrowDownOutline as DownloadIcon,
   SaveOutline as SaveIcon,
-  PowerOutline as ResetartIcon,
+  PowerOutline as RestartIcon,
+  OpenOutline as OpenIcon,
+  RefreshCircleOutline as ResetIcon,
 } from '@vicons/ionicons5'
 import { NIcon } from 'naive-ui'
 import { defineComponent, h, ref } from 'vue'
@@ -122,7 +124,7 @@ const buttons:MenuOption[]=[
   {
     label: 'Open',
     key: 'open',
-    icon:renderIcon(ReadIcon),
+    icon:renderIcon(OpenIcon),
   },
   {
     label: 'Read',
@@ -142,7 +144,7 @@ const buttons:MenuOption[]=[
   {
     label:'Restart',
     key:'restart',
-    icon:renderIcon(ResetartIcon),
+    icon:renderIcon(RestartIcon),
   }
 ]
 

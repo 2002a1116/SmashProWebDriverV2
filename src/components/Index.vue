@@ -7,22 +7,26 @@
         <n-card style="max-width: 800px;">
             <n-flex vertical>
                 <n-flex justify="center">
-                    <n-carousel autoplay style="width:600;">
+                    <n-carousel autoplay show-arrow>
                         <img
                         class="carousel-img"
-                        src="https://naive-ui.oss-cn-beijing.aliyuncs.com/carousel-img/carousel1.jpeg"
+                        src="../assets/image_front.jpg"
                         >
                         <img
                         class="carousel-img"
-                        src="https://naive-ui.oss-cn-beijing.aliyuncs.com/carousel-img/carousel2.jpeg"
+                        src="../assets/image_back.jpg"
                         >
                         <img
                         class="carousel-img"
-                        src="https://naive-ui.oss-cn-beijing.aliyuncs.com/carousel-img/carousel3.jpeg"
+                        src="../assets/image_parts.jpg"
                         >
                         <img
                         class="carousel-img"
-                        src="https://naive-ui.oss-cn-beijing.aliyuncs.com/carousel-img/carousel4.jpeg"
+                        src="../assets/image_exp1.jpg"
+                        >
+                        <img
+                        class="carousel-img"
+                        src="../assets/image_exp2.jpg"
                         >
                     </n-carousel>
                 </n-flex>
@@ -35,7 +39,7 @@
                     <span>839973286,Controller group,手柄交流群</span>
                 </n-flex>
                 <n-flex justify="center">
-                    <span>图片暂为占位作用，设备打开功能迁移至左侧侧边栏</span>
+                    <span>我知道图不好看,欢迎大家返图，设备打开功能迁移至左侧侧边栏</span>
                 </n-flex>
             </n-flex>
         </n-card>

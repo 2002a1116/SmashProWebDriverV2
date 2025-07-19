@@ -35,7 +35,7 @@
             <n-card title="rumble strategy">
                 <n-flex vertical>
                     <n-flex>
-                        <span>imu switch:</span>
+                        <span>rumble switch:</span>
                         <n-switch v-model:value="rumble_enabled" />
                     </n-flex>
                     <n-flex>
