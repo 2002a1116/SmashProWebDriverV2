@@ -35,6 +35,10 @@
             <n-card title="rumble strategy">
                 <n-flex vertical>
                     <n-flex>
+                        <span>imu switch:</span>
+                        <n-switch v-model:value="rumble_enabled" />
+                    </n-flex>
+                    <n-flex>
                         <span>rumble mode:</span>
                         <n-select v-model:value="rumble_mode" :options="rumble_mode_list" style="width: 150px" />
                     </n-flex>
@@ -86,6 +90,17 @@ export default {
         }
     },
     computed:{
+        rumble_enabled:{
+            get():boolean{
+                return !(conf.config_bitmap1&0x20);
+            },
+            set(v:boolean){
+                if(v)
+                    conf.config_bitmap1&=(~0x20);
+                else
+                    conf.config_bitmap1|=0x20;
+            }
+        },
         rumble_ratio_0:{
             get(){
                 return conf.hd_rumble_amp_ratio[0]/AMP_FACTOR*100;
