@@ -56,8 +56,8 @@
                         <n-button @click="generate_bd_addr">generate address</n-button>
                     </n-flex>
                     <n-flex justify="space-between">
-                        <span>pcb type:</span>
-                        <n-select v-model:value="pcb_type" :options="pcb_type_list" style="width: 250px" />
+                        <span>rgb type:</span>
+                        <n-select v-model:value="rgb_type" :options="rgb_type_list" style="width: 250px" />
                     </n-flex>
                     <n-flex justify="space-between">
                         <span>key pcb type:</span>
@@ -104,7 +104,7 @@ export default {
             conf,
             read_erom,
             controller_color_save,
-            pcb_type_list: [
+            rgb_type_list: [
                 {
                     label: 'indicate led only',
                     value: 0,
@@ -192,12 +192,12 @@ export default {
         }
     },
     computed: {
-        pcb_type:{
+        rgb_type:{
             get():number{
-                return conf.config_bitmap2&0x3;
+                return conf.config_bitmap2&0x1;
             },
             set(v:number){
-                conf.config_bitmap2=(conf.config_bitmap2&0xfc)|(v&0x3);
+                conf.config_bitmap2=(conf.config_bitmap2&0xfe)|(v&0x1);
             }
         },
         input_type:{

@@ -62,7 +62,8 @@ export class conf_pack{
     };*/
     config_bitmap1=(0);
     config_bitmap2=(0);
-    config_bitmap_reserved34=([0,0]);
+    config_bitmap_reserved3=(0);
+    hd_rumble_mixer_ratio=(0);
     in_interval=(8);
     out_interval=(8);
     hd_rumble_amp_ratio=([0,0,0,0]);//len:4
@@ -92,7 +93,9 @@ export function conf_unserilize(p:any){
     conf.bd_addr=p.bd_addr;
     conf.config_bitmap1=p.config_bitmap1; 
     conf.config_bitmap2=p.config_bitmap2;
-    conf.config_bitmap_reserved34=p.hasOwnProperty('config_bitmap_reserved')?p.config_bitmap_reserved:p.config_bitmap_reserved34;
+    conf.config_bitmap_reserved3=p.config_bitmap_reserved3;
+    conf.hd_rumble_mixer_ratio=p.hd_rumble_mixer_ratio;
+    //conf.config_bitmap_reserved34=p.hasOwnProperty('config_bitmap_reserved')?p.config_bitmap_reserved:p.config_bitmap_reserved34;
     conf.in_interval=p.in_interval;
     conf.out_interval=p.out_interval;
     conf.hd_rumble_amp_ratio=p.hd_rumble_amp_ratio;
@@ -385,7 +388,9 @@ rgb_hex.onchange = () => {
 export function unpack_conf(array: number[]) {
     conf.config_bitmap1 = array[0];
     conf.config_bitmap2 = array[1];
-    conf.config_bitmap_reserved34 = array.slice(2,4);
+    //conf.config_bitmap_reserved34 = array.slice(2,4);
+    conf.config_bitmap_reserved3 = array[2];
+    conf.hd_rumble_mixer_ratio = array[3];
     conf.in_interval = array[4];
     conf.out_interval = array[5];
     console.log("interval:" + conf.in_interval.toString() + "|" + conf.out_interval.toString());
@@ -415,8 +420,14 @@ export function put_u8(x:number)
 {
     return x&0xff;
 }
+export function put_i8(x:number)
+{
+    let tmp=new Int8Array([x]);
+    return tmp[0];
+}
 export function pack_conf() {
-    array = [put_u8(conf.config_bitmap1), put_u8(conf.config_bitmap2), ...(new Uint8Array(conf.config_bitmap_reserved34)),
+    array = [put_u8(conf.config_bitmap1), put_u8(conf.config_bitmap2), 
+    put_u8(conf.config_bitmap_reserved3), put_i8(conf.hd_rumble_mixer_ratio),
     put_u8(conf.in_interval), put_u8(conf.out_interval),
     ...(new Uint8Array(conf.hd_rumble_amp_ratio)), ...(new Int8Array(conf.joystick_ratio)),
     ...put_u16(conf.imu_sample_gap),
