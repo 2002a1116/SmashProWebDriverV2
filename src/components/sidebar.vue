@@ -113,6 +113,16 @@ const navs: MenuOption[] = [
     label: () =>
       h(
         RouterLink,
+        {to: {name: 'Factory'}},
+        {default: () => '硬件版本(HWRev)'}
+      ),
+    key: 'Info',
+    icon: renderIcon(HomeIcon)
+  },
+  {
+    label: () =>
+      h(
+        RouterLink,
         {to: {name: 'Info'}},
         {default: () => '信息(Info)'}
       ),

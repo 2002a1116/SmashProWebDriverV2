@@ -1,11 +1,11 @@
-import Index from "../components/Index.vue";
+import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router';import Index from "../components/Index.vue";
 import Joystick from "../components/Joystick.vue";
 import Rumble from "../components/Rumble.vue";
 import Gyro from "../components/Gyro.vue";
 import Rgb from "../components/Rgb.vue";
 import Others from "../components/Others.vue";
 import Info from "../components/Info.vue";
-import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router';
+import Factory from "../components/Factory.vue";
 const routes = [
     { path: '/', name: 'Home', component: Index },
     { path: '/Joystick', name: 'Joystick', component: Joystick},
@@ -13,6 +13,7 @@ const routes = [
     { path: '/Gyro', name: 'Gyro', component: Gyro},
     { path: '/Rgb', name: 'Rgb', component: Rgb},
     { path: '/Others', name: 'Others', component: Others},
+    { path: '/Factory', name:'Factory',component: Factory},
     { path: '/Info', name:'Info',component: Info},
   ];
 const router = createRouter({

@@ -6,8 +6,8 @@
         <n-flex justify="center">
             <n-card title="joystick" class="n-card-large">
                 <n-flex justify="space-evenly">
-                    <canvas id="ljoy_canvas" width="300" height="300"></canvas>
-                    <canvas id="rjoy_canvas" width="300" height="300"></canvas>
+                    <canvas id="ljoy_canvas" width="300" height="350"></canvas>
+                    <canvas id="rjoy_canvas" width="300" height="350"></canvas>
                 </n-flex>
             </n-card>
         </n-flex>
@@ -42,7 +42,7 @@
                         <n-slider v-model:value="js_ratio_1" :step="0.03125" :min="0" :max="4"
                             @update:value="(value: number) => js_associate(1, value)" />
                     </n-flex>
-                    <span>DEAD ZONE:</span>
+                    <span>Dead zone(raw):</span>
                     <n-flex>
                         <span>axis X:</span>
                         <n-input-number v-model:value="conf.dead_zone[0]" size="small" />
@@ -88,7 +88,7 @@
                         <n-slider v-model:value="js_ratio_3" :step="0.03125" :min="0" :max="4"
                             @update:value="(value: number) => js_associate(3, value)" />
                     </n-flex>
-                    <span>DEAD ZONE:</span>
+                    <span>Dead zone(raw):</span>
                     <n-flex>
                         <span>axis X:</span>
                         <n-input-number v-model:value="conf.dead_zone[2]" size="small" />
@@ -111,7 +111,7 @@
                     <span>dead zone mode:</span>
                     <n-select v-model:value="dead_zone_mode" :options="dz_mode_list" style="width: 150px" />
                 </n-flex>
-                <span>anti snapback:</span>
+                <span>anti snapback filter:</span>
                 <n-flex>
                     <span>left deadzone:</span>
                     <n-input-number v-model:value="conf.joystick_snapback_deadzone[0]" size="tiny" />
@@ -119,9 +119,9 @@
                     <span>right deadzone:</span>
                     <n-input-number v-model:value="conf.joystick_snapback_deadzone[1]" size="tiny" />
                     <n-slider v-model:value="conf.joystick_snapback_deadzone[1]" :step="1" :min="0" :max="2048" />
-                    <span>filter lasts(ms):</span>
+                    <span>filter window(ms):</span>
                     <n-input-number v-model:value="js_snbk_delay" size="tiny" />
-                    <n-slider v-model:value="js_snbk_delay" :step="0.001" :min="0" :max="32" />
+                    <n-slider v-model:value="js_snbk_delay" :step="0.001" :min="0" :max="64" />
                 </n-flex>
             </n-card>
             <n-card title="calibrate center">
@@ -137,57 +137,11 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
 import { conf, JS_FACTOR, device, js, fw_snd, js_start_calibrate, js_save_calibration } from './webusb'
-function draw() {
-    let ljco:any = document.getElementById('ljoy_canvas');
-    let rjco:any = document.getElementById('rjoy_canvas');
-    //console.log(conf.joystick_snapback_deadzone);
-    //console.log(conf.dead_zone);
-    try {
-        let ljc = ljco.getContext('2d');
-        let rjc = rjco.getContext('2d');
-        ljc.clearRect(0, 0, 300, 300);
-        rjc.clearRect(0, 0, 300, 300);
-        ljc.beginPath();
-        ljc.arc(100, 100, 80, 0 * Math.PI / 180, 360 * Math.PI / 180, false);
-        ljc.closePath();//关闭当前路径
-        rjc.beginPath();
-        rjc.arc(100, 100, 80, 0 * Math.PI / 180, 360 * Math.PI / 180, false);
-        rjc.closePath();//关闭当前路径
-        ljc.moveTo(0, 100);//起点坐标
-        ljc.lineTo(200, 100);//终点坐标
-        ljc.moveTo(100, 0);//起点坐标
-        ljc.lineTo(100, 200);//终点坐标
-        rjc.moveTo(0, 100);//起点坐标
-        rjc.lineTo(200, 100);//终点坐标
-        rjc.moveTo(100, 0);//起点坐标
-        rjc.lineTo(100, 200);//终点坐标
-        ljc.stroke();
-        rjc.stroke();
-        ljc.beginPath();
-        //ljc.arc(100, 100, 5, 0 * Math.PI / 180, 360 * Math.PI / 180, false);
-        //console.log(js[0].pos);
-        ljc.arc(js[0].pos.x * 100 / 2048, (4096 - js[0].pos.y) * 100 / 2048, 5, 0 * Math.PI / 180, 360 * Math.PI / 180, false);
-        ljc.closePath();
-        ljc.fillStyle = 'ffffff';
-        ljc.fill();
-        ljc.stroke();
-        rjc.beginPath();
-        //ljc.arc(100, 100, 5, 0 * Math.PI / 180, 360 * Math.PI / 180, false);
-        rjc.arc(js[1].pos.x * 100 / 2048, (4096 - js[1].pos.y) * 100 / 2048, 5, 0 * Math.PI / 180, 360 * Math.PI / 180, false);
-        rjc.closePath();
-        rjc.fillStyle = 'ffffff';
-        rjc.fill();
-        rjc.stroke();
-    } catch (e: any) {
-        console.log("draw error");
-        console.log(e.message);
-    }
-}
 let interval:any;
 export default {
     setup() {
         return {
-            js_ratio: ref([1.25, 1.25, 1.25, 1.25]),
+            //js_ratio: ref([1.25, 1.25, 1.25, 1.25]),
             js_reversed: ref([false, false, false, false]),
             dz_mode_list: [
                 {
@@ -225,6 +179,60 @@ export default {
         },
         calibrate_js_center(){
             fw_snd(0x07,null);
+        },
+        draw() {
+            let ljco:any = document.getElementById('ljoy_canvas');
+            let rjco:any = document.getElementById('rjoy_canvas');
+            //console.log(conf.joystick_snapback_deadzone);
+            //console.log(conf.dead_zone);
+            try {
+                let ljc = ljco.getContext('2d');
+                let rjc = rjco.getContext('2d');
+                ljc.clearRect(0, 0, 300, 350);
+                rjc.clearRect(0, 0, 300, 350);
+                ljc.beginPath();
+                ljc.arc(100, 100, 80, 0 * Math.PI / 180, 360 * Math.PI / 180, false);
+                ljc.closePath();//关闭当前路径
+                rjc.beginPath();
+                rjc.arc(100, 100, 80, 0 * Math.PI / 180, 360 * Math.PI / 180, false);
+                rjc.closePath();//关闭当前路径
+                ljc.moveTo(0, 100);//起点坐标
+                ljc.lineTo(200, 100);//终点坐标
+                ljc.moveTo(100, 0);//起点坐标
+                ljc.lineTo(100, 200);//终点坐标
+                rjc.moveTo(0, 100);//起点坐标
+                rjc.lineTo(200, 100);//终点坐标
+                rjc.moveTo(100, 0);//起点坐标
+                rjc.lineTo(100, 200);//终点坐标
+                ljc.stroke();
+                rjc.stroke();
+                ljc.beginPath();
+                //ljc.arc(100, 100, 5, 0 * Math.PI / 180, 360 * Math.PI / 180, false);
+                //console.log(js[0].pos);
+                ljc.arc(js[0].pos.x * 100 / 2048, (4096 - js[0].pos.y) * 100 / 2048, 5, 0 * Math.PI / 180, 360 * Math.PI / 180, false);
+                ljc.closePath();
+                ljc.fillStyle = 'ffffff';
+                ljc.fill();
+                ljc.stroke();
+                rjc.beginPath();
+                //ljc.arc(100, 100, 5, 0 * Math.PI / 180, 360 * Math.PI / 180, false);
+                rjc.arc(js[1].pos.x * 100 / 2048, (4096 - js[1].pos.y) * 100 / 2048, 5, 0 * Math.PI / 180, 360 * Math.PI / 180, false);
+                rjc.closePath();
+                rjc.fillStyle = 'ffffff';
+                rjc.fill();
+                rjc.stroke();
+                ljc.font        = "normal 20px Arial";
+                ljc.strokeStyle = "#000000";
+                rjc.font        = "normal 20px Arial";
+                rjc.strokeStyle = "#000000";
+                ljc.strokeText('X pos:'+(js[0].pos.x-2048).toString()+'        raw pos:'+((js[0].pos.x-2048)/this.js_ratio_0).toString(), 0, 310);
+                ljc.strokeText('Y pos:'+(js[0].pos.y-2048).toString()+'        raw pos:'+((js[0].pos.y-2048)/this.js_ratio_1).toString(), 0, 330);
+                rjc.strokeText('X pos:'+(js[1].pos.x-2048).toString()+'        raw pos:'+((js[1].pos.x-2048)/this.js_ratio_2).toString(), 0, 310);
+                rjc.strokeText('Y pos:'+(js[1].pos.y-2048).toString()+'        raw pos:'+((js[1].pos.y-2048)/this.js_ratio_3).toString(), 0, 330);
+            } catch (e: any) {
+                console.log("draw error");
+                console.log(e.message);
+            }
         }
     },
     computed: {
@@ -285,8 +293,8 @@ export default {
             this.js_reversed[i]=(conf.joystick_ratio[i]<0);
             this.js_ratio[i]=conf.joystick_ratio[i] / JS_FACTOR * (this.js_reversed[i] ? -1 : 1);
         }*/
-        draw(); // 初始调用
-        this.interval = setInterval(draw, 1); // 每0.2秒轮询一次
+        this.draw(); // 初始调用
+        this.interval = setInterval(this.draw, 1); // 每0.2秒轮询一次
     },
     unmounted() {
         clearInterval(this.interval); // 清除定时器，防止内存泄漏

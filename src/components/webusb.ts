@@ -1,3 +1,4 @@
+import { factory } from "typescript";
 import { reactive, ref } from "vue";
 
 export class rgb{
@@ -46,6 +47,35 @@ export function fetch_u32(arr: number[]) {
 export function put_u16(v) {
     return new Uint8Array([v & 0xff, 0xff & (v >> 8)]);
 }
+export let conf;
+export let factory_config;
+export class factory_config_pack{
+    config_bitmap0=(0);
+    pcb_rev=(0);
+    reserved12345=([0,0,0,0,0]);
+    input_typ=0;
+    led_typ=0;
+    rgb_typ=0;
+    rgb_cnt=31;
+};
+export function fac_conf_unserilize(p:any){
+    factory_config.config_bitmap0=p.config_bitmap0;
+    factory_config.pcb_rev=p.pcb_rev;
+    factory_config.reserved12345=p.reserved12345;
+    factory_config.input_typ=p.input_typ;
+    factory_config.led_typ=p.led_typ;
+    factory_config.rgb_typ=p.rgb_typ;
+    factory_config.rgb_cnt=p.rgb_cnt;
+}
+function unpack_factory_config(buf:Uint8Array){
+    factory_config.config_bitmap0=buf[0];
+    factory_config.pcb_rev=buf[1];
+    factory_config.reserved12345=buf.slice(2,7);
+    factory_config.input_typ=buf[7];
+    factory_config.led_typ=buf[8];
+    factory_config.rgb_typ=buf[9];
+    factory_config.rgb_cnt=buf[10];
+}
 export class conf_pack{
     /*union{
         uint8_t config_bitmap1;
@@ -79,14 +109,13 @@ export class conf_pack{
     ns_pkt_timer_mode=(0);//0:stock(timestamp_div_5) 1:timestamp 2:pkt cnt
     //dead_zone=reactive([0,0,0,0]);//len:4
     dead_zone=([0,0,0,0]);//len:4
-    config_bitmap5=(0);
-    rgb_cnt=(31);
+    config_bitmap_reserved56=([0,0]);
     rgb_data:rgb[]=([]);//len>=29
 };
 //export let conf=reactive(new conf_pack());
-export let conf;
 export function conf_init(){
     conf=reactive(new conf_pack());
+    factory_config=reactive(new factory_config_pack());
     unpack_conf(new Array(256).fill(0));
 }
 export function conf_unserilize(p:any){
@@ -111,8 +140,8 @@ export function conf_unserilize(p:any){
     conf.ns_pkt_timer_mode=p.ns_pkt_timer_mode
     //conf.dead_zone=reactive(p.dead_zone)
     conf.dead_zone=(p.dead_zone)
-    conf.config_bitmap5=p.hasOwnProperty('config_bitmap5')?p.config_bitmap5:(0);
-    conf.rgb_cnt=p.rgb_cnt
+    conf.config_bitmap_reserved56=[p.hasOwnProperty('config_bitmap_reserved56')?p.config_bitmap56:(0),0];
+    //conf.rgb_cnt=p.rgb_cnt
     conf.rgb_data=p.rgb_data;
     if('dead_zone_mode' in p){
         conf.config_bitmap2|=(p.dead_zone_mode<<6)&0xc0;
@@ -324,6 +353,13 @@ export function read_erom_handler(buf:Uint8Array) {
                     break;
             }
             break;
+        case 0x0000://smashpro factory config
+            unpack_factory_config(buf.slice(5,buf.length));
+            console.log("smash_pro_fac_conf");
+            console.log(buf);
+            break;
+        default:
+            break;
     }
 }
 export const read_erom = async (addr:number, size:number) => {
@@ -343,7 +379,18 @@ export const write_erom = async (addr:number, size:number, data:Uint8Array) => {
         addr >>= 8;
     }//addr
     buf =new Uint8Array([...buf, ...data]);
+    console.log("write_erom");
+    console.log(buf);
     await fw_snd(0x04, buf);
+}
+export function factory_config_save() {
+    console.log("fac");
+    console.log(factory_config);
+    let buf=new Uint8Array([put_u8(factory_config.config_bitmap0),put_u8(factory_config.pcb_rev),
+        ...factory_config.reserved12345,put_u8(factory_config.input_typ),put_u8(factory_config.led_typ),
+        put_u8(factory_config.rgb_typ),put_u8(factory_config.rgb_cnt)
+    ]);
+    write_erom(0x0000, 0x0b, buf);
 }
 export function controller_color_save() {
     /*let buf = new Uint8Array(0x0C);
@@ -390,7 +437,7 @@ export function unpack_conf(array: number[]) {
     conf.config_bitmap2 = array[1];
     //conf.config_bitmap_reserved34 = array.slice(2,4);
     conf.config_bitmap_reserved3 = array[2];
-    conf.hd_rumble_mixer_ratio = array[3];
+    conf.hd_rumble_mixer_ratio = put_i8(array[3]);
     conf.in_interval = array[4];
     conf.out_interval = array[5];
     console.log("interval:" + conf.in_interval.toString() + "|" + conf.out_interval.toString());
@@ -409,9 +456,11 @@ export function unpack_conf(array: number[]) {
     conf.pro_fw_version = array[31];
     conf.ns_pkt_timer_mode = array[32];
     conf.dead_zone = (array.slice(33, 37));
-    conf.config_bitmap5 = array[37];
-    conf.rgb_cnt = array[38];
-    for(let i=0;i<conf.rgb_cnt;i++){
+    //conf.config_bitmap5 = array[37];
+    conf.config_bitmap_reserved56 = array.slice(37,39);
+    //conf.rgb_cnt = array[38];
+    if(factory_config.rgb_cnt<31)factory_config.rgb_cnt=31;
+    for(let i=0;i<factory_config.rgb_cnt;i++){
         conf.rgb_data[i]=u8a_to_rgb(new Uint8Array(array.slice(39+i*3,42+i*3)));
     }
     console.log("unpacked");
@@ -436,8 +485,7 @@ export function pack_conf() {
     ...(new Uint8Array(conf.bd_addr)),
     put_u8(conf.imu_ratio_x), put_u8(conf.imu_ratio_y), put_u8(conf.imu_ratio_z),
     put_u8(conf.pro_fw_version), put_u8(conf.ns_pkt_timer_mode),
-    ...(new Uint8Array(conf.dead_zone)), put_u8(conf.config_bitmap5),
-    put_u8(conf.rgb_cnt)
+    ...(new Uint8Array(conf.dead_zone)), ...(new Uint8Array(conf.config_bitmap_reserved56))
     ];
     conf.rgb_data.forEach(r => {
         array.push(...rgb_to_u8a(r));
@@ -578,7 +626,7 @@ export async function open_device() {
                 outputDataLength = device.collections[0].outputReports[0].items[0].reportCount ?? 0;
             }
             msg = `connected to: \n${device.productName}\nPID-${device.productId} VID-${device.vendorId}`;
-            alert(msg);
+            //alert(msg);
             connection_status = 1;
             get_fw_version();
         }
@@ -589,18 +637,21 @@ export async function open_device() {
             switch (id) {
                 case 0xFF://fw version
                     fw_version = buffer[0] * 255 + buffer[1];
-                    if (fw_version < (255 * 0 + 4)) {
+                    if (fw_version < (255 * 1 + 1)) {
                         alert("error: firmware too old.");
                         device = 0;
                         connection_status = 0;
                         //connection_status_text.innerHTML = "disconnected.";
                     }
                     //document.querySelector("#fw_version").innerHTML = buffer[0].toString() + '.' + buffer[1].toString();
+                    //inital read
+                    read_erom(0x0000, 0x0b);
                     read_conf();
                     read_erom(0x603d, 0x09);
                     read_erom(0x6046, 0x09);
                     read_erom(0x8001, 0x08);
                     read_erom(0x6050, 0x0C);
+                    alert("Please makesure hardware info match your controller hardware.");
                     break;
                 case 0x01:
                     ofst = buffer[0];

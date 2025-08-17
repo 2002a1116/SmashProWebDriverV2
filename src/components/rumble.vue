@@ -8,13 +8,13 @@
                 <n-flex vertical>
                     <n-flex>
                         <span>high band:</span>
-                        <n-input-number v-model:value="rumble_ratio_0" :step="1" :min="0" :max="199" size="small" style="width:150px"/>%
-                        <n-slider v-model:value="rumble_ratio_0" :step="1" :min="0" :max="199" />
+                        <n-input-number v-model:value="rumble_ratio_0" :step="1" :min="0" :max="200" size="small" style="width:150px"/>%
+                        <n-slider v-model:value="rumble_ratio_0" :step="1" :min="0" :max="200" />
                     </n-flex>
                     <n-flex>
                         <span>low band:</span>
-                        <n-input-number v-model:value="rumble_ratio_1" :step="1" :min="0" :max="199" size="small" style="width:150px"/>%
-                        <n-slider v-model:value="rumble_ratio_1" :step="1" :min="0" :max="199" />
+                        <n-input-number v-model:value="rumble_ratio_2" :step="1" :min="0" :max="200" size="small" style="width:150px"/>%
+                        <n-slider v-model:value="rumble_ratio_2" :step="1" :min="0" :max="200" />
                     </n-flex>
                 </n-flex>
             </n-card>
@@ -22,13 +22,13 @@
                 <n-flex vertical>
                     <n-flex>
                         <span>high band:</span>
-                        <n-input-number v-model:value="rumble_ratio_2" :step="1" :min="0" :max="199" size="small" style="width:150px"/>%
-                        <n-slider v-model:value="rumble_ratio_2" :step="1" :min="0" :max="199" />
+                        <n-input-number v-model:value="rumble_ratio_1" :step="1" :min="0" :max="200" size="small" style="width:150px"/>%
+                        <n-slider v-model:value="rumble_ratio_1" :step="1" :min="0" :max="200" />
                     </n-flex>
                     <n-flex>
                         <span>low band:</span>
-                        <n-input-number v-model:value="rumble_ratio_3" :step="1" :min="0" :max="199" size="small"  style="width:150px"/>%
-                        <n-slider v-model:value="rumble_ratio_3" :step="1" :min="0" :max="199" />
+                        <n-input-number v-model:value="rumble_ratio_3" :step="1" :min="0" :max="200" size="small"  style="width:150px"/>%
+                        <n-slider v-model:value="rumble_ratio_3" :step="1" :min="0" :max="200" />
                     </n-flex>
                 </n-flex>
             </n-card>
@@ -38,19 +38,15 @@
                         <span>rumble switch:</span>
                         <n-switch v-model:value="rumble_enabled" />
                     </n-flex>
-                      <n-divider />
                     <n-flex>
-                        <span>allow larger total amplitude(debug):</span>
-                        <n-switch v-model:value="pcb_typ" />
-                        <span>#For PCB REV2.13 or later only</span>
-                    </n-flex> 
-                    <n-divider />
+                        <span>rise low amp(hack):</span>
+                        <n-switch v-model:value="low_amp_rise_hack" size='medium'/>
+                        <span>#feel small rumble hard to notice?try this.</span>
+                    </n-flex>
                     <n-flex>
-                        <span>wave synthesis ratio:</span>
-                        <n-input-number v-model:value="mixer_ratio" :step="0.0078125" :min="-1" :max="1" size="small" style="width:150px"/>
-                        <n-slider v-model:value="mixer_ratio" :step="0.0078125" :min="-1" :max="1" />
-                        <span>#Used to be hardcoded as 1(old default).</span>
-                        <span>#New reseach shows its more like -0.5(default).</span>
+                        <span>drop high amp(hack):</span>
+                        <n-switch v-model:value="high_amp_drop_hack" size='medium'/>
+                        <span>#feel big rumble too hard?try this.</span>
                     </n-flex>
                 </n-flex>
             </n-card>
@@ -60,13 +56,6 @@
                         <span>rumble mode:</span>
                         <n-select v-model:value="rumble_mode" :options="rumble_mode_list" style="width: 150px" />
                     </n-flex>
-                      <n-divider />
-                    <n-flex>
-                        <span>rise low amp(hack):</span>
-                        <n-switch v-model:value="low_amp_rise_hack" size='medium'/>
-                        <span>#feel small rumble hard to notice?try this.</span>
-                    </n-flex>
-                      <n-divider />
                     <n-flex>
                         <span>rumble wave switch strategy(legacy mode only):</span>
                         <n-select v-model:value="rumble_pattern" :options="rumble_pattern_list" style="width: 300px" />
@@ -78,8 +67,9 @@
 </template>
 <script lang="ts">
 import { computed, defineComponent, ref } from 'vue'
-import { conf,AMP_FACTOR } from './webusb'
+import { conf,AMP_FACTOR, factory_config } from './webusb'
 import { configProviderProps } from 'naive-ui';
+import { factory } from 'typescript';
 export default {
     setup() {
         return {
@@ -111,25 +101,6 @@ export default {
         }
     },
     computed:{
-        mixer_ratio:{
-            get():number{
-                return -conf.hd_rumble_mixer_ratio/128.0;
-            },
-            set(v:number){
-                v*=128;
-                if(v>128)v=128;
-                else if(v<-127)v=-127;
-                conf.hd_rumble_mixer_ratio=-v;
-            }
-        },
-        pcb_typ:{
-            get():boolean{
-                return (conf.config_bitmap2&0x2)>0;
-            },
-            set(v:boolean){
-                conf.config_bitmap2=(conf.config_bitmap2&0xfd)|(v?0x02:0);
-            }
-        },
         rumble_enabled:{
             get():boolean{
                 return !(conf.config_bitmap1&0x20);
@@ -208,7 +179,15 @@ export default {
             set(v:boolean){
                 conf.config_bitmap2=(conf.config_bitmap2&0xef)|(((v?1:0)<<4)&0x10);
             }
-        }
+        },
+        high_amp_drop_hack:{
+            get():boolean{
+                return ((conf.config_bitmap2>>3)&0x1)==1;
+            },
+            set(v:boolean){
+                conf.config_bitmap2=(conf.config_bitmap2&0xf7)|(((v?1:0)<<3)&0x08);
+            }
+        },
     },
     methods: {
     },
