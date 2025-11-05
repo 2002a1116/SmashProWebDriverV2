@@ -1,3 +1,4 @@
+import { c } from "naive-ui";
 import { factory } from "typescript";
 import { reactive, ref } from "vue";
 
@@ -35,13 +36,13 @@ export function hex_to_rgb(s:string):rgb{
     r.r=parseInt(s.slice(1,3),16);
     r.g=parseInt(s.slice(3,5),16);
     r.b=parseInt(s.slice(5,7),16);
-    console.log(r);
+    //console.log(r);
     return r;
 }
 export function fetch_u16(arr: any[] | Uint8Array<ArrayBuffer>) {
     return arr[0] + (arr[1] << 8);
 }
-export function fetch_u32(arr: number[]) {
+export function fetch_u32(arr: any[] | Uint8Array<ArrayBuffer>) {
     return arr[0] + (arr[1] << 8) + (arr[2] << 16) + (arr[3] << 24);
 }
 export function put_u16(v) {
@@ -52,7 +53,7 @@ export let factory_config;
 export class factory_config_pack{
     config_bitmap0=(0);
     pcb_rev=(0);
-    reserved12345=([0,0,0,0,0]);
+    reserved12345=[0,0,0,0,0];
     input_typ=0;
     led_typ=0;
     rgb_typ=0;
@@ -70,7 +71,7 @@ export function fac_conf_unserilize(p:any){
 function unpack_factory_config(buf:Uint8Array){
     factory_config.config_bitmap0=buf[0];
     factory_config.pcb_rev=buf[1];
-    factory_config.reserved12345=buf.slice(2,7);
+    factory_config.reserved12345=[...buf.slice(2,7)];
     factory_config.input_typ=buf[7];
     factory_config.led_typ=buf[8];
     factory_config.rgb_typ=buf[9];
@@ -92,8 +93,7 @@ export class conf_pack{
     };*/
     config_bitmap1=(0);
     config_bitmap2=(0);
-    config_bitmap_reserved3=(0);
-    hd_rumble_mixer_ratio=(0);
+    button_disable_mask:(0);
     in_interval=(8);
     out_interval=(8);
     hd_rumble_amp_ratio=([0,0,0,0]);//len:4
@@ -109,7 +109,7 @@ export class conf_pack{
     ns_pkt_timer_mode=(0);//0:stock(timestamp_div_5) 1:timestamp 2:pkt cnt
     //dead_zone=reactive([0,0,0,0]);//len:4
     dead_zone=([0,0,0,0]);//len:4
-    config_bitmap_reserved56=([0,0]);
+    //config_bitmap_reserved56=([0,0]);
     rgb_data:rgb[]=([]);//len>=29
 };
 //export let conf=reactive(new conf_pack());
@@ -122,8 +122,7 @@ export function conf_unserilize(p:any){
     conf.bd_addr=p.bd_addr;
     conf.config_bitmap1=p.config_bitmap1; 
     conf.config_bitmap2=p.config_bitmap2;
-    conf.config_bitmap_reserved3=p.config_bitmap_reserved3;
-    conf.hd_rumble_mixer_ratio=p.hd_rumble_mixer_ratio;
+    conf.button_disable_mask=p.button_disable_mask;
     //conf.config_bitmap_reserved34=p.hasOwnProperty('config_bitmap_reserved')?p.config_bitmap_reserved:p.config_bitmap_reserved34;
     conf.in_interval=p.in_interval;
     conf.out_interval=p.out_interval;
@@ -140,12 +139,9 @@ export function conf_unserilize(p:any){
     conf.ns_pkt_timer_mode=p.ns_pkt_timer_mode
     //conf.dead_zone=reactive(p.dead_zone)
     conf.dead_zone=(p.dead_zone)
-    conf.config_bitmap_reserved56=[p.hasOwnProperty('config_bitmap_reserved56')?p.config_bitmap56:(0),0];
+    //conf.config_bitmap_reserved56=[p.hasOwnProperty('config_bitmap_reserved56')?p.config_bitmap56:(0),0];
     //conf.rgb_cnt=p.rgb_cnt
     conf.rgb_data=p.rgb_data;
-    if('dead_zone_mode' in p){
-        conf.config_bitmap2|=(p.dead_zone_mode<<6)&0xc0;
-    }
 }
 export class coord{
     x:number=0;
@@ -177,7 +173,7 @@ export let js:js_data[]=[new js_data,new js_data]
 export let connection_status:number;
 export let device: any; // 需要连接或已连接的设备
 export let msg:String | null;
-export let fw_version:number;
+export let fw_version=0;
 export let array = new Array();
 export let red_cnt = 0;
 export let snd_cnt = 0;
@@ -282,11 +278,16 @@ export async function js_save_calibration(id:number){
     if(id==1){
         buf=new Uint8Array([...buf.slice(3,6),...buf.slice(6,9),...buf.slice(0,3)]);//we reset data order.
     }
-    write_erom(0x603d + id * 0x09, 9, buf);
+    write_erom(0x603d + id * 0x09, 9, 1, buf);
     js_cali_fsm[id] = 0;
 }
+let conf_buf=Array(256);
+let rgb_buf=Array(256);
 export function read_erom_handler(buf:Uint8Array) {
     let addr = buf[0] + (buf[1] << 8) + (buf[2] << 16) + (buf[3] << 24);
+    let size = buf[4];
+    //console.log("recv erom data addr: "+addr.toString(16)+" size:"+size.toString(16));
+    if(size<0)size=0;
     let id:number=0;
     switch (addr & 0xff00) {
         case 0x6000:
@@ -297,10 +298,10 @@ export function read_erom_handler(buf:Uint8Array) {
                 case 0x3d:
                     let addr2 = 0x603d + id * 0x09;
                     if (addr != addr2) return;
-                    console.log("read success addr:" + addr.toString() + "|" + addr2.toString());
+                    //console.log("read success addr:" + addr.toString() + "|" + addr2.toString());
                     if (buf[4] != 9) return;
-                    console.log("decode erom");
-                    console.log(buf);
+                    //console.log("decode erom");
+                    //console.log(buf);
                     let base = 8;
                     base = 8;
                     js[id].center.x = buf[base] + ((buf[base + 1] & 0xf) << 8);
@@ -355,15 +356,50 @@ export function read_erom_handler(buf:Uint8Array) {
             break;
         case 0x0000://smashpro factory config
             unpack_factory_config(buf.slice(5,buf.length));
-            console.log("smash_pro_fac_conf");
-            console.log(buf);
+            //console.log("smash_pro_fac_conf");
+            //console.log(buf);
             break;
+        case 0x9000:
+            rgb_buf=[...rgb_buf.slice(0,addr&0xff),...buf.slice(5,size+5),...rgb_buf.slice((addr&0xff)+size)];
+            if((addr&0xff)+size>=0xff){
+                if(factory_config.rgb_cnt<=0)factory_config.rgb_cnt=31;
+                for(let i=0;i<factory_config.rgb_cnt;i++){
+                    conf.rgb_data[i]=u8a_to_rgb(new Uint8Array(rgb_buf.slice(i*3,3+i*3)));
+                }
+                //console.log(rgb_buf);
+                //console.log("rgb_buf");
+            }
+            break;
+        case 0xF000:
+            //console.log("read uconf");
+            //console.log("addr: "+addr.toString(16)+"  size: "+size.toString());
+            conf_buf=[...conf_buf.slice(0,addr&0xff),...buf.slice(5,size+5),...conf_buf.slice((addr&0xff)+size)];
+            if((addr&0xff)+size>=0xff){
+                unpack_conf(conf_buf);
+                flush_setting();
+                console.log(conf_buf);
+                console.log("conf_buf");
+                conf_buf=Array(256);
+            }
         default:
             break;
     }
 }
 export const read_erom = async (addr:number, size:number) => {
+    console.log("read erom addr:"+addr.toString(16));
     let buf = new Uint8Array(5);
+    while(size>0xff){
+        buf[4]=0xff;
+        let a=addr;
+        for (let i = 0; i < 4; ++i) {
+            buf[i] = a & 0xff;
+            a >>= 8;
+        }//addr
+        size-=0xff;
+        addr+=0xff;
+        fw_snd(0x03, buf);
+    }
+    if(size==0)return;
     buf[4] = size;//size
     for (let i = 0; i < 4; ++i) {
         buf[i] = addr & 0xff;
@@ -371,26 +407,40 @@ export const read_erom = async (addr:number, size:number) => {
     }//addr
     await fw_snd(0x03, buf);
 }
-export const write_erom = async (addr:number, size:number, data:Uint8Array) => {
-    let buf = new Uint8Array(5);
+const _write_erom = async (addr:number, size:number, save:number, data:Uint8Array|any[]) => {
+    if(size>56)
+        console.log("error erom payload too long");
+    if(!size)return;
+    let buf = new Uint8Array(6);
     buf[4] = size;
+    buf[5] = save;
     for (let i = 0; i < 4; ++i) {
         buf[i] = addr & 0xff;
         addr >>= 8;
     }//addr
     buf =new Uint8Array([...buf, ...data]);
-    console.log("write_erom");
-    console.log(buf);
+    //console.log("write_erom");
+    //console.log(buf);
     await fw_snd(0x04, buf);
 }
+export const write_erom = async (addr:number, size:number, save:number, data:Uint8Array|any[]) => {
+    while(size>56){
+        _write_erom(addr,56,save,data.slice(0,56));
+        addr+=56;
+        size-=56;
+        data=data.slice(56);
+    }
+    if(size)
+        _write_erom(addr,size,((save==0x1)?0xf:0),data);
+}
 export function factory_config_save() {
-    console.log("fac");
-    console.log(factory_config);
+    //console.log("fac");
+    //console.log(factory_config);
     let buf=new Uint8Array([put_u8(factory_config.config_bitmap0),put_u8(factory_config.pcb_rev),
         ...factory_config.reserved12345,put_u8(factory_config.input_typ),put_u8(factory_config.led_typ),
         put_u8(factory_config.rgb_typ),put_u8(factory_config.rgb_cnt)
     ]);
-    write_erom(0x0000, 0x0b, buf);
+    write_erom(0x0000, 0x0b, 1, buf);
 }
 export function controller_color_save() {
     /*let buf = new Uint8Array(0x0C);
@@ -413,7 +463,7 @@ export function controller_color_save() {
     let buf=new Uint8Array([...rgb_to_u8a(controller_color[0]),
     ...rgb_to_u8a(controller_color[1]),...rgb_to_u8a(controller_color[2]),
     ...rgb_to_u8a(controller_color[3])]);
-    write_erom(0x6050, 0x0C, buf);
+    write_erom(0x6050, 0x0C, 1, buf);
 }
 export function read_js_cali(id:number){
     if(id>1)return;
@@ -436,34 +486,40 @@ export function unpack_conf(array: number[]) {
     conf.config_bitmap1 = array[0];
     conf.config_bitmap2 = array[1];
     //conf.config_bitmap_reserved34 = array.slice(2,4);
-    conf.config_bitmap_reserved3 = array[2];
-    conf.hd_rumble_mixer_ratio = put_i8(array[3]);
-    conf.in_interval = array[4];
-    conf.out_interval = array[5];
+    /*conf.config_bitmap_reserved3 = array[2];
+    conf.hd_rumble_mixer_ratio = put_i8(array[3]);*/
+    conf.in_interval = array[2];
+    conf.out_interval = array[3];
+    conf.button_disable_mask=fetch_u16(array.slice(4,6))<<8+array[6];
     console.log("interval:" + conf.in_interval.toString() + "|" + conf.out_interval.toString());
-    conf.hd_rumble_amp_ratio = (array.slice(6, 10));
-    conf.joystick_ratio = [...(new Int8Array(array.slice(10, 14)))];
-    conf.imu_sample_gap = fetch_u16(array.slice(14, 16));
+    conf.hd_rumble_amp_ratio = (array.slice(7, 11));
+    conf.joystick_ratio = [...(new Int8Array(array.slice(11, 15)))];
+    conf.imu_sample_gap = fetch_u16(array.slice(15, 17));
     //conf.ldz = fetch_u16(array.slice(13, 15));
     //conf.rdz = fetch_u16(array.slice(15, 17));
-    conf.joystick_snapback_deadzone[0] = fetch_u16(array.slice(16,18));
-    conf.joystick_snapback_deadzone[1] = fetch_u16(array.slice(18,20));
-    conf.joystick_snapback_filter_max_delay = fetch_u16(array.slice(20, 22));
-    conf.bd_addr = (array.slice(22, 28));
-    conf.imu_ratio_x = array[28];
-    conf.imu_ratio_y = array[29];
-    conf.imu_ratio_z = array[30];
-    conf.pro_fw_version = array[31];
-    conf.ns_pkt_timer_mode = array[32];
-    conf.dead_zone = (array.slice(33, 37));
+    conf.joystick_snapback_deadzone[0] = fetch_u16(array.slice(17,19));
+    conf.joystick_snapback_deadzone[1] = fetch_u16(array.slice(19,21));
+    conf.joystick_snapback_filter_max_delay = fetch_u16(array.slice(21, 23));
+    conf.bd_addr = (array.slice(23, 29));
+    conf.imu_ratio_x = array[29];
+    conf.imu_ratio_y = array[30];
+    conf.imu_ratio_z = array[31];
+    conf.pro_fw_version = array[32];
+    conf.ns_pkt_timer_mode = array[33];
+    conf.dead_zone = (array.slice(34, 38));
+
+    if(conf.out_interval<=2)conf.out_interval=8;
+
     //conf.config_bitmap5 = array[37];
-    conf.config_bitmap_reserved56 = array.slice(37,39);
+    //conf.config_bitmap_reserved56 = array.slice(37,39);
     //conf.rgb_cnt = array[38];
-    if(factory_config.rgb_cnt<31)factory_config.rgb_cnt=31;
+    /*if(factory_config.rgb_cnt<31)factory_config.rgb_cnt=31;
     for(let i=0;i<factory_config.rgb_cnt;i++){
         conf.rgb_data[i]=u8a_to_rgb(new Uint8Array(array.slice(39+i*3,42+i*3)));
-    }
-    console.log("unpacked");
+    }*/
+    //console.log("unpacked");
+    //console.log(conf);
+    //console.log(array);
 }
 export function put_u8(x:number)
 {
@@ -474,10 +530,10 @@ export function put_i8(x:number)
     let tmp=new Int8Array([x]);
     return tmp[0];
 }
-export function pack_conf() {
-    array = [put_u8(conf.config_bitmap1), put_u8(conf.config_bitmap2), 
-    put_u8(conf.config_bitmap_reserved3), put_i8(conf.hd_rumble_mixer_ratio),
+export function pack_conf():Uint8Array {
+    let array = [put_u8(conf.config_bitmap1), put_u8(conf.config_bitmap2), 
     put_u8(conf.in_interval), put_u8(conf.out_interval),
+    ...put_u16(conf.button_disable_mask>>8),put_u8(conf.button_disable_mask&0xff),
     ...(new Uint8Array(conf.hd_rumble_amp_ratio)), ...(new Int8Array(conf.joystick_ratio)),
     ...put_u16(conf.imu_sample_gap),
     ...put_u16(conf.joystick_snapback_deadzone[0]), ...put_u16(conf.joystick_snapback_deadzone[1]),
@@ -485,12 +541,14 @@ export function pack_conf() {
     ...(new Uint8Array(conf.bd_addr)),
     put_u8(conf.imu_ratio_x), put_u8(conf.imu_ratio_y), put_u8(conf.imu_ratio_z),
     put_u8(conf.pro_fw_version), put_u8(conf.ns_pkt_timer_mode),
-    ...(new Uint8Array(conf.dead_zone)), ...(new Uint8Array(conf.config_bitmap_reserved56))
+    ...(new Uint8Array(conf.dead_zone))
     ];
-    conf.rgb_data.forEach(r => {
+    /*conf.rgb_data.forEach(r => {
         array.push(...rgb_to_u8a(r));
-    });
-    console.log(conf);
+    });*/
+    //console.log(conf);
+    //console.log(array);
+    return new Uint8Array(array);
 }
 export function flush_setting() {
     flush_rgb();
@@ -520,13 +578,20 @@ export function fw_snd(id: number, buf: Uint8Array<ArrayBuffer> | null) {
     }
     hid_snd(0xfe, new Uint8Array([id, ...buf]));
 }
+export const send_rgb = async (save:number) => {
+    let array=Array();
+    conf.rgb_data.forEach(r => {
+        array.push(...rgb_to_u8a(r));
+    });
+    write_erom(0x9000,array.length,save,array);
+}
 export const send_conf = async (save: number) => {
     try {
         if (!device?.opened) {
             throw "Device not opened";
         }
-        confirm_setting();
-        pack_conf();
+        /*confirm_setting();
+        let array = pack_conf();
         let buf;
         let i = 0;
         for (; (i + 1) * PAYLOAD_LENGTH <= array.length; ++i) {
@@ -542,7 +607,13 @@ export const send_conf = async (save: number) => {
             ++i;
         }
         buf = new Uint8Array([0xFF, i, save]);
-        fw_snd(0x02, buf);
+        fw_snd(0x02, buf);*/
+        let array=pack_conf();
+        write_erom(0xF000,array.length,save,array);
+        //console.log(array.length);
+        //console.log(array);
+        //send_rgb(save);
+        fw_snd(0x02,null);//flush setting
     } catch (error) {
         msg = `${error}\n\n`;
         alert(msg);
@@ -555,7 +626,8 @@ export const read_conf = async () => {
         if (!device?.opened) {
             throw "Device not opened";
         }
-        fw_snd(0x01, null);//no payload
+        //fw_snd(0x01, null);//no payload
+        read_erom(0xF000,0xff);
         fw_snd(0xFD, null);//READ STATUS
     } catch (error) {
         msg = `${error}\n\n`;
@@ -585,6 +657,10 @@ export const get_fw_version = async () => {
         console.log(msg);
     }
 };
+export function get_fw_version_text(v:number){
+    return "V"+((v>>16)&0xff).toString() + "." + ((v>>8)&0xff).toString()+"."+(v&0xff).toString()+".x";
+}
+export let fw_version_text=ref("V0.0.0.x");
 export async function open_device() {
     try {
         // requestDevice方法将显示一个包含已连接设备列表的对话框，用户选择可以并授予其中一个设备访问权限
@@ -611,7 +687,7 @@ export async function open_device() {
         let inputDataLength:number=0;
         if (!device.opened) {
             // 检查设备是否打开
-            await device.open(); // 打开设备
+            await device.open(); // 打开设备    
 
             // 下面几行代码和我的自定义的透传的HID设备有关
             // 我的设备中有一个collection，包含一个input、一个output
@@ -632,20 +708,27 @@ export async function open_device() {
         }
         // await device.close(); // 关闭设备
         // await device.forget() // 遗忘设备
-        function fw_packet_dispatch(id: number, buffer: Uint8Array<ArrayBufferLike>) {
+        function fw_packet_dispatch(id: number, buffer: Uint8Array<ArrayBuffer>) {
             console.log("fw dispatch: 0x" + id.toString(16).padStart(2, '0'));
+            const fw_ver_at_least=0x00010200;
             switch (id) {
                 case 0xFF://fw version
-                    fw_version = buffer[0] * 255 + buffer[1];
-                    if (fw_version < (255 * 1 + 1)) {
-                        alert("error: firmware too old.");
-                        device = 0;
+                    fw_version = fetch_u32(buffer);
+                    fw_version_text.value = get_fw_version_text(fw_version);
+                    console.log("fw version "+fw_version_text.value);
+                    if (fw_version < fw_ver_at_least) {
+                        alert("error: firmware "+fw_version_text.value+" is out-dated.");
+                        console.log("firmware request "+get_fw_version_text(fw_ver_at_least)+" or newer.");
+                        device.close();
+                        device = null;
                         connection_status = 0;
+                        break;
                         //connection_status_text.innerHTML = "disconnected.";
                     }
                     //document.querySelector("#fw_version").innerHTML = buffer[0].toString() + '.' + buffer[1].toString();
                     //inital read
                     read_erom(0x0000, 0x0b);
+                    read_erom(0x9000, 0xff);
                     read_conf();
                     read_erom(0x603d, 0x09);
                     read_erom(0x6046, 0x09);
@@ -654,7 +737,7 @@ export async function open_device() {
                     alert("Please makesure hardware info match your controller hardware.");
                     break;
                 case 0x01:
-                    ofst = buffer[0];
+                    /*ofst = buffer[0];
                     if (ofst == 0xff)//confirm
                     {
                         if (red_cnt != buffer[1]) {
@@ -671,9 +754,10 @@ export async function open_device() {
                         array = [...array.slice(0, ofst), ...buffer, ...array.slice(ofst + buffer.length, 128 - ofst + buffer.length)];
                         red_cnt++;
                     }
+                    break;*/
                     break;
                 case 0x02:
-                    if (!buffer[1])
+                    /*if (!buffer[1])
                         break;
                     if (buffer[0] == 1) {
                         alert("save success");
@@ -682,7 +766,7 @@ export async function open_device() {
                         console.log(buffer);
                         alert("save fail");
                     }
-                    break;
+                    break;*/
                 case 0x05:
                     if (0 == buffer[0]) {
                         alert("calibrate success.");
@@ -694,10 +778,13 @@ export async function open_device() {
                     read_erom_handler(buffer);
                     break;
                 case 0x04:
-                    if (0 == buffer[0]) {
-                        alert("erom write success.");
-                    } else {
-                        alert("erom write fail,errorcode:" + buffer[0].toString());
+                    if (buffer[0]) {
+                        if(buffer[1]==0){
+                            if(buffer[0]==0xf)
+                                alert("Save Success.");
+                        }
+                        else
+                            alert("Rom write fail,errorcode:" + buffer[0].toString());
                     }
                     break;
                 case 0x06:

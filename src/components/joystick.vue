@@ -124,10 +124,22 @@
                     <n-slider v-model:value="js_snbk_delay" :step="0.001" :min="0" :max="64" />
                 </n-flex>
             </n-card>
-            <n-card title="calibrate center">
-                <n-flex justify="space-around">
-                    <span>keep js in the center before calibrate</span>
-                    <n-button @click="calibrate_js_center">calibrate</n-button>
+            <n-card title="calibrate setting">
+                <n-flex vertical>
+                    <div>
+                        <n-flex justify="space-around">
+                            <span>calibrate joystick center:</span>
+                            <n-button @click="calibrate_js_center">calibrate</n-button>
+                        </n-flex>
+                    </div>
+                    <span>Plz keep joysticks in the center before calibrating</span>
+                      <n-divider />
+                    <div>
+                        <n-flex justify="space-around">
+                            <span>joystick range normalization:</span>
+                            <n-switch v-model:value="js_normalization"/>
+                        </n-flex>
+                    </div>
                 </n-flex>
             </n-card>
         </n-flex>
@@ -236,6 +248,17 @@ export default {
         }
     },
     computed: {
+        js_normalization:{
+            get():boolean{
+                return ((conf.config_bitmap2>>2)&0x1)>0;
+            },
+            set(v:boolean){
+                if(v)
+                    conf.config_bitmap2|=0x4;
+                else
+                    conf.config_bitmap2&=(~0x4);
+            }
+        },
         js_snbk_delay:{
             get(){
                 return conf.joystick_snapback_filter_max_delay/1000;
@@ -254,8 +277,6 @@ export default {
         },
         js_ratio_0:{
             get():number{
-                console.log("get 0");
-                console.log(conf.joystick_ratio[0] / JS_FACTOR * (this.js_reversed[0] ? -1 : 1));
                 return conf.joystick_ratio[0] / JS_FACTOR * (this.js_reversed[0] ? -1 : 1);
             },
             set(v:number){
@@ -287,14 +308,27 @@ export default {
             }
         }
     },
+    watch:{
+        watch_js_ratio:{
+            handler(v,oldv){
+                for(let i=0;i<4;++i){
+                    //console.log(conf.joystick_ratio[i]);
+                    this.js_reversed[i]=(conf.joystick_ratio[i]<0);
+                    //conf.joystick_ratio[i]=conf.joystick_ratio[i] * (this.js_reversed[i] ? -1 : 1);
+                    //console.log(conf.joystick_ratio[i]);
+                }
+            }
+        }
+    },
     mounted() {
-        /*for(let i=0;i<4;++i){
+        for(let i=0;i<4;++i){
             //console.log(conf.joystick_ratio[i]);
             this.js_reversed[i]=(conf.joystick_ratio[i]<0);
-            this.js_ratio[i]=conf.joystick_ratio[i] / JS_FACTOR * (this.js_reversed[i] ? -1 : 1);
-        }*/
+            //conf.joystick_ratio[i]=conf.joystick_ratio[i] * (this.js_reversed[i] ? -1 : 1);
+            console.log(conf.joystick_ratio[i]);
+        }
         this.draw(); // 初始调用
-        this.interval = setInterval(this.draw, 1); // 每0.2秒轮询一次
+        this.interval = setInterval(this.draw, 1); // 每1ms轮询一次
     },
     unmounted() {
         clearInterval(this.interval); // 清除定时器，防止内存泄漏

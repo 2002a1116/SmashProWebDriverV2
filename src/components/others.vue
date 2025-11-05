@@ -27,14 +27,14 @@
                         <span>Swap X&Y:</span>
                         <n-switch v-model:value="x_y_swap" />
                     </n-flex>
-                    <n-flex justify="space-between">
-                        <span>Disable cross key:</span>
-                        <n-switch v-model:value="cross_key_off" />
-                    </n-flex>
                 </n-flex>
             </n-card>
             <n-card title="hardware setting" style="max-width: 500px">
                 <n-flex vertical>
+                    <n-flex justify="space-around">
+                        <span>Controller Firmware Version:</span>
+                        {{ fw_version_text }}
+                    </n-flex>
                     <n-flex>
                         <span>bluetooth address:</span>
                     </n-flex>
@@ -55,12 +55,16 @@
                     <n-flex justify="space around">
                         <n-button @click="generate_bd_addr">generate address</n-button>
                     </n-flex>
+                    <n-flex justify="space-between">
+                        <span>Rgb enable:</span>
+                        <n-switch v-model:value="led_enabled" />
+                    </n-flex>
                 </n-flex>
             </n-card>
             <n-card title="Shell Color">
                 <n-flex vertical>
-                    shell:<n-color-picker :show-preview="true" v-model:value="color_main" />
-                    buttons:<n-color-picker :show-preview="true" v-model:value="color_shell" />
+                    shell:<n-color-picker :show-preview="true" v-model:value="color_shell" />
+                    buttons:<n-color-picker :show-preview="true" v-model:value="color_button" />
                     left grip:<n-color-picker :show-preview="true" v-model:value="color_grip_left" />
                     right grip:<n-color-picker :show-preview="true" v-model:value="color_grip_right" />
                     <n-flex justify="space around">
@@ -76,8 +80,8 @@
                         maxRows: 100,
                     }"></n-input>
                     <n-flex justify="space-around">
-                        <n-button @click="() => { conf_unserilize(JSON.parse(conf_seri));console.log(conf); }">import</n-button>
-                        <n-button @click="() => { conf_seri = JSON.stringify(conf); }">export</n-button>
+                        <n-button @click="import_json_config">import</n-button>
+                        <n-button @click="export_json_config">export</n-button>
                     </n-flex>
                 </n-flex>
             </n-card>
@@ -86,10 +90,12 @@
 </template>
 <script lang="ts">
 import { defineComponent, reactive, ref } from 'vue'
-import { conf, conf_pack, conf_unserilize, controller_color, controller_color_save, gen_bt_addr, hex_to_rgb, read_erom, rgb_to_hex } from './webusb'
+import { conf, conf_pack, conf_unserilize, controller_color, controller_color_save, fw_version, gen_bt_addr, fw_version_text, hex_to_rgb, read_erom, rgb_to_hex, factory_config, fac_conf_unserilize, factory_config_save, send_conf, send_rgb } from './webusb'
+import { Send } from '@vicons/ionicons5';
 export default {
     setup() {
         return {
+            fw_version_text,
             reactive,
             conf_unserilize,
             conf_seri: ref(""),
@@ -178,16 +184,7 @@ export default {
                 else conf.config_bitmap1 &= (~0x08);
             }
         },
-        cross_key_off: {
-            get(): boolean {
-                return (conf.config_bitmap1 & 0x04) != 0;
-            },
-            set(v: boolean) {
-                if (v) conf.config_bitmap1 |= 0x04;
-                else conf.config_bitmap1 &= (~0x04);
-            }
-        },
-        color_main: {
+        color_shell: {
             get(): string {
                 return rgb_to_hex(controller_color[0]);
             },
@@ -195,7 +192,7 @@ export default {
                 controller_color[0] = hex_to_rgb(v);
             }
         },
-        color_shell: {
+        color_button: {
             get(): string {
                 return rgb_to_hex(controller_color[1]);
             },
@@ -221,7 +218,7 @@ export default {
         },
         bd_addr_0:{
             get(){
-                return conf.bd_addr[0].toString(16);
+                return conf.bd_addr[0].toString(16).padStart(2, '0');
             },
             set(str:string){
                 conf.bd_addr[0]=parseInt(str,16);
@@ -229,7 +226,7 @@ export default {
         },
         bd_addr_1:{
             get(){
-                return conf.bd_addr[1].toString(16);
+                return conf.bd_addr[1].toString(16).padStart(2, '0');
             },
             set(str:string){
                 conf.bd_addr[1]=parseInt(str,16);
@@ -237,7 +234,7 @@ export default {
         },
         bd_addr_2:{
             get(){
-                return conf.bd_addr[2].toString(16);
+                return conf.bd_addr[2].toString(16).padStart(2, '0');
             },
             set(str:string){
                 conf.bd_addr[2]=parseInt(str,16);
@@ -245,7 +242,7 @@ export default {
         },
         bd_addr_3:{
             get(){
-                return conf.bd_addr[3].toString(16);
+                return conf.bd_addr[3].toString(16).padStart(2, '0');
             },
             set(str:string){
                 conf.bd_addr[3]=parseInt(str,16);
@@ -253,7 +250,7 @@ export default {
         },
         bd_addr_4:{
             get(){
-                return conf.bd_addr[4].toString(16);
+                return conf.bd_addr[4].toString(16).padStart(2, '0');
             },
             set(str:string){
                 conf.bd_addr[4]=parseInt(str,16);
@@ -261,17 +258,47 @@ export default {
         },
         bd_addr_5:{
             get(){
-                return conf.bd_addr[5].toString(16);
+                return conf.bd_addr[5].toString(16).padStart(2, '0');
             },
             set(str:string){
                 conf.bd_addr[5]=parseInt(str,16);
             }
         },
+        led_enabled:{
+            get():boolean{
+                return (conf.config_bitmap1&0x02)==0;
+            },
+            set(v:boolean){
+                if (!v) conf.config_bitmap1 |= 0x02;
+                else conf.config_bitmap1 &= (~0x02);
+            }
+        }
     },
     methods: {
         generate_bd_addr() {
             gen_bt_addr();
         },
+        export_json_config(){
+            let p=Object();
+            p.conf=conf;
+            p.factory_config=factory_config;
+            p.controller_color=controller_color;
+            this.conf_seri=JSON.stringify(p);
+        },
+        import_json_config(){
+            let p=JSON.parse(this.conf_seri);
+            conf_unserilize(p.conf);
+            fac_conf_unserilize(p.factory_config);
+            factory_config_save();
+            send_conf(0);
+            send_rgb(0);
+            //Object.assign(controller_color,p.controller);
+            this.color_shell=rgb_to_hex(p.controller_color[0]);
+            this.color_button=rgb_to_hex(p.controller_color[1]);
+            this.color_grip_left=rgb_to_hex(p.controller_color[2]);
+            this.color_grip_right=rgb_to_hex(p.controller_color[3]);
+            console.log(factory_config);
+        }
     },
     beforeDestroy() {
     }

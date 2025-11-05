@@ -42,7 +42,7 @@ import {
 import { NIcon } from 'naive-ui'
 import { defineComponent, h, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { fw_snd, open_device, read_conf, send_conf } from './webusb'
+import { fw_snd, open_device, read_conf, send_conf, send_rgb, read_erom } from './webusb'
 
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) })
@@ -87,6 +87,16 @@ const navs: MenuOption[] = [
         {default: () => '摇杆(Joystick)'}
       ),
     key: 'Joystick',
+    icon: renderIcon(HomeIcon)
+  },
+  {
+    label: () =>
+      h(
+        RouterLink,
+        {to: {name: 'Button'}},
+        {default: () => '按键(Button)'}
+      ),
+    key: 'Button',
     icon: renderIcon(HomeIcon)
   },
   {
@@ -174,10 +184,12 @@ export default defineComponent({
         open_device();
       }else if(key=='read'){
         read_conf();
+        read_erom(0x9000,0xff);
       }else if(key=='set'){
         send_conf(0);
       }else if(key=='save'){
         send_conf(1);
+        send_rgb(2);
       }else if(key=='restart'){
         fw_snd(0xFE, null);
       }

@@ -6,6 +6,7 @@ import Rgb from "../components/Rgb.vue";
 import Others from "../components/Others.vue";
 import Info from "../components/Info.vue";
 import Factory from "../components/Factory.vue";
+import Button from '../components/Button.vue';
 const routes = [
     { path: '/', name: 'Home', component: Index },
     { path: '/Joystick', name: 'Joystick', component: Joystick},
@@ -15,6 +16,7 @@ const routes = [
     { path: '/Others', name: 'Others', component: Others},
     { path: '/Factory', name:'Factory',component: Factory},
     { path: '/Info', name:'Info',component: Info},
+    { path: '/Button', name:'Button',component: Button},
   ];
 const router = createRouter({
     history: createWebHashHistory(),

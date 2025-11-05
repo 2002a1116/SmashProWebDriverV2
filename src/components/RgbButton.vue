@@ -1,6 +1,6 @@
 <template>
     <n-button circle size="tiny"
-        :color="rgb_button_color_cal(id)" :text-color="rgb_button_color_cal_rev(id)">Set</n-button>
+        :color="props.bg_color" :text-color="props.text_color">{{ props.text }}</n-button>
 </template>
 <script lang="ts">
 import { NButton, useModal } from 'naive-ui';
@@ -9,11 +9,13 @@ import { conf, hex_to_rgb, rgb_to_hex, send_conf } from './webusb';
 export default defineComponent({
     name:'RgbButton',
     props: {
-        rgb_id: Number
+        text: String,
+        text_color: String,
+        bg_color: String
     },
     setup(props, ctx){
         return{
-            id:props.rgb_id
+            props,
         };
     },
     methods:{

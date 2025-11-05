@@ -27,7 +27,7 @@
                 </n-flex>
                 <n-flex>
                     <span>rgb cnt:</span>
-                    <n-input-number v-model:value="factory_config.rgb_cnt" :step="1" :min="0" :max="31" size="small" style="width: 100px;"/>
+                    <n-input-number v-model:value="factory_config.rgb_cnt" :step="1" :min="0" :max="89" size="small" style="width: 100px;"/>
                     <span>#default is 31</span>
                 </n-flex>
                 <n-flex justify="space-around">
