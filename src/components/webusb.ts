@@ -490,7 +490,7 @@ export function unpack_conf(array: number[]) {
     conf.hd_rumble_mixer_ratio = put_i8(array[3]);*/
     conf.in_interval = array[2];
     conf.out_interval = array[3];
-    conf.button_disable_mask=fetch_u16(array.slice(4,6))<<8+array[6];
+    conf.button_disable_mask=fetch_u16(array.slice(5,7))<<8+array[4];
     console.log("interval:" + conf.in_interval.toString() + "|" + conf.out_interval.toString());
     conf.hd_rumble_amp_ratio = (array.slice(7, 11));
     conf.joystick_ratio = [...(new Int8Array(array.slice(11, 15)))];
@@ -533,7 +533,7 @@ export function put_i8(x:number)
 export function pack_conf():Uint8Array {
     let array = [put_u8(conf.config_bitmap1), put_u8(conf.config_bitmap2), 
     put_u8(conf.in_interval), put_u8(conf.out_interval),
-    ...put_u16(conf.button_disable_mask>>8),put_u8(conf.button_disable_mask&0xff),
+    put_u8(conf.button_disable_mask&0xff),...put_u16(conf.button_disable_mask>>8),
     ...(new Uint8Array(conf.hd_rumble_amp_ratio)), ...(new Int8Array(conf.joystick_ratio)),
     ...put_u16(conf.imu_sample_gap),
     ...put_u16(conf.joystick_snapback_deadzone[0]), ...put_u16(conf.joystick_snapback_deadzone[1]),
@@ -657,10 +657,10 @@ export const get_fw_version = async () => {
         console.log(msg);
     }
 };
-export function get_fw_version_text(v:number){
-    return "V"+((v>>16)&0xff).toString() + "." + ((v>>8)&0xff).toString()+"."+(v&0xff).toString()+".x";
+export function get_fw_version_text(v:number,v2:number){
+    return "V"+((v>>16)&0xff).toString() + "." + ((v>>8)&0xff).toString()+"."+(v&0xff).toString()+"."+v2.toString();
 }
-export let fw_version_text=ref("V0.0.0.x");
+export let fw_version_text=ref("V0.0.0.0");
 export async function open_device() {
     try {
         // requestDevice方法将显示一个包含已连接设备列表的对话框，用户选择可以并授予其中一个设备访问权限
@@ -714,11 +714,12 @@ export async function open_device() {
             switch (id) {
                 case 0xFF://fw version
                     fw_version = fetch_u32(buffer);
-                    fw_version_text.value = get_fw_version_text(fw_version);
+                    let fw_subversion = fetch_u32(buffer.slice(4));
+                    fw_version_text.value = get_fw_version_text(fw_version,fw_subversion);
                     console.log("fw version "+fw_version_text.value);
                     if (fw_version < fw_ver_at_least) {
                         alert("error: firmware "+fw_version_text.value+" is out-dated.");
-                        console.log("firmware request "+get_fw_version_text(fw_ver_at_least)+" or newer.");
+                        console.log("firmware request "+get_fw_version_text(fw_subversion,0)+" or newer.");
                         device.close();
                         device = null;
                         connection_status = 0;

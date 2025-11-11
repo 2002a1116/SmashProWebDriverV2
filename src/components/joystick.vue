@@ -12,7 +12,7 @@
             </n-card>
         </n-flex>
         <n-flex justify="center">
-            <n-card title="left joystick">
+            <n-card title="Left joystick">
                 <n-flex vertical>
                     <n-flex>
                         <n-flex>
@@ -58,7 +58,7 @@
                     </n-flex>
                 </n-flex>
             </n-card>
-            <n-card title="right joystick">
+            <n-card title="Right joystick">
                 <n-flex vertical>
                     <n-flex>
                         <n-flex>
@@ -106,12 +106,7 @@
             </n-card>
         </n-flex>
         <n-flex justify="center">
-            <n-card title="Settings">
-                <n-flex justify="space-between">
-                    <span>dead zone mode:</span>
-                    <n-select v-model:value="dead_zone_mode" :options="dz_mode_list" style="width: 150px" />
-                </n-flex>
-                <span>anti snapback filter:</span>
+            <n-card title="Anti-Snapback Filter:">
                 <n-flex>
                     <span>left deadzone:</span>
                     <n-input-number v-model:value="conf.joystick_snapback_deadzone[0]" size="tiny" />
@@ -124,18 +119,21 @@
                     <n-slider v-model:value="js_snbk_delay" :step="0.001" :min="0" :max="64" />
                 </n-flex>
             </n-card>
-            <n-card title="calibrate setting">
+            <n-card title="Settings & Calibrations:">
                 <n-flex vertical>
                     <div>
                         <n-flex justify="space-around">
-                            <span>calibrate joystick center:</span>
-                            <n-button @click="calibrate_js_center">calibrate</n-button>
+                            <n-button @click="calibrate_js_center">Calibrate Joystick Center Point</n-button>
                         </n-flex>
                     </div>
-                    <span>Plz keep joysticks in the center before calibrating</span>
-                      <n-divider />
+                    <span>Plz keep joysticks in the center before calibrating.</span>
+                    <n-divider />
                     <div>
-                        <n-flex justify="space-around">
+                        <n-flex justify="space-between">
+                            <span>dead zone mode:</span>
+                            <n-select v-model:value="dead_zone_mode" :options="dz_mode_list" style="width: 150px" />
+                        </n-flex>
+                        <n-flex justify="space-between">
                             <span>joystick range normalization:</span>
                             <n-switch v-model:value="js_normalization"/>
                         </n-flex>

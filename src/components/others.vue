@@ -27,13 +27,21 @@
                         <span>Swap X&Y:</span>
                         <n-switch v-model:value="x_y_swap" />
                     </n-flex>
+                    <n-flex justify="space-between">
+                        <span>Dpad mapping left joystick:</span>
+                        <n-switch v-model:value="dpad_mapping_joystick"/>
+                    </n-flex>
                 </n-flex>
             </n-card>
             <n-card title="hardware setting" style="max-width: 500px">
                 <n-flex vertical>
-                    <n-flex justify="space-around">
-                        <span>Controller Firmware Version:</span>
+                    <n-flex justify="space-between">
+                        <span>Current Firmware Version:</span>
                         {{ fw_version_text }}
+                    </n-flex>
+                    <n-flex justify="space-between">
+                        <span>Latest Firmware Version:</span>
+                        {{ latest_fw_version_text }}
                     </n-flex>
                     <n-flex>
                         <span>bluetooth address:</span>
@@ -90,12 +98,13 @@
 </template>
 <script lang="ts">
 import { defineComponent, reactive, ref } from 'vue'
-import { conf, conf_pack, conf_unserilize, controller_color, controller_color_save, fw_version, gen_bt_addr, fw_version_text, hex_to_rgb, read_erom, rgb_to_hex, factory_config, fac_conf_unserilize, factory_config_save, send_conf, send_rgb } from './webusb'
+import { conf, conf_unserilize, controller_color, controller_color_save, gen_bt_addr, fw_version_text, hex_to_rgb, read_erom, rgb_to_hex, factory_config, fac_conf_unserilize, factory_config_save, send_conf, send_rgb } from './webusb'
 import { Send } from '@vicons/ionicons5';
 export default {
     setup() {
         return {
             fw_version_text,
+            latest_fw_version_text: "V1.2.0.1",
             reactive,
             conf_unserilize,
             conf_seri: ref(""),
@@ -166,6 +175,17 @@ export default {
         }
     },
     computed: {
+        dpad_mapping_joystick:{
+            get():boolean{
+                return ((conf.config_bitmap1>>2)&0x1)>0;
+            },
+            set(v:boolean){
+                if(v)
+                    conf.config_bitmap1|=0x4;
+                else
+                    conf.config_bitmap1&=(~0x4);
+            }
+        },
         a_b_swap: {
             get(): boolean {
                 return (conf.config_bitmap1 & 0x10) != 0;
